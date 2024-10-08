@@ -1,47 +1,27 @@
 import { useState } from "react";
 import "./main.css"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import testData from "./testData.js";
 
-function Nav() {
 
-    function callBack(result) {
-        
-    }
-    const students = [
-        {
-            id: 1
-        },
-        {
-            id: 2
-        },
-        {
-            id: 3
-        },
-        {
-            id: 4
-        },
-        {
-            id: 5
-        },
-    ]
-
+function Nav({students}) {
+    console.log(students)
     return (
         <div className="nav">
         <div className="titlecard">
         <h1>TITLE</h1>
         </div>
         <div className="bruh">
-        <DragDropContext onDragEnd={callBack}>
         <Droppable droppableId="nameList">
         {(provided)=> (
         <ul ref={provided.innerRef} {...provided.droppableProps}>
-            {students.map(({id}, index) => 
-                <Draggable key={id} draggableId={id.toString()} index={index}>
+            {students.map((studentName, index) => 
+                <Draggable key={studentName} draggableId={studentName} index={index}>
                 {(provided)=> (
 
                     <li  ref={provided.innerRef} {...provided.dragHandleProps} {...provided.draggableProps}>
 
-                    <Member num={id} />
+                    <Member num={studentName} />
                     </li>
                 ) }
                 </Draggable>
@@ -52,17 +32,22 @@ function Nav() {
 
         )}
         </Droppable>
-        </DragDropContext>
         </div> 
         </div>
     );
 }
 
-function Team({key}) {
+function Team({index,teamId}) {
     return (
-        <div className="team">
-            
+        <Droppable droppableId={teamId}>
+        {(provided)=> (
+
+        <div className="team" ref={provided.innerRef} {...provided.droppableProps}>
+
+            {provided.placeholder}
         </div>
+        )}
+        </Droppable>
     )
 }
 
@@ -70,7 +55,8 @@ function View() {
     const [teams, setTeams] = useState([]);
 
     const addTeam = () => {
-        setTeams([...teams, {}]);
+        setTeams([...teams, `team-${teams.length + 1}`]);  // Assign unique ID based on team number
+        console.log(`team-${teams.length + 1}`)
     }
     return (
         <div className="groupview">
@@ -79,8 +65,8 @@ function View() {
         <button onClick={addTeam}>Add Team</button>
         </div>
         <div className="grouplist">
-        {teams.map((_, index)=>(
-            <Team key={index}/>
+        {teams.map((teamId,index)=>(
+            <Team key={index} teamId={teamId}/>
         ))}
         </div>
         </div>
@@ -93,16 +79,83 @@ function View() {
 function Member({num}) {
     return (
         <div className="member">
-            Member {num}
+             {num}
         </div>
     )
 }
 
 export default function Main() {
+    const [state, setState] = useState(testData);
+    const nameList = Object.values(state.students).map(student => student.name);
+    const [nameState, nameSetState] = useState(nameList);
+    const onDragEnd = result => {
+        const {destination, source, draggableID} = result;
+        if (!destination) return;
+        if (destination.droppableId == source.droppableId &&
+            destination.index == source.index) {
+            return;
+        }
+        if (destination.droppableId == "nameList") {
+            const newNameState = Array.from(nameState);  // Create a new array from nameState
+            const [removed] = newNameState.splice(source.index, 1);  // Remove the item from the source index
+            newNameState.splice(destination.index, 0, removed);  // Insert it at the destination index
+
+            nameSetState(newNameState);
+            console.log(nameState)
+            return;
+        }
+        const start = state.columns[source.droppableId];
+        const finish = state.columns[destination.droppableId];
+        console.log("start", start.order);
+        console.log("end",finish.order)
+        if(start != finish){
+            const newArr = Array.from(Object.values(start).order);
+            const [draggedItem] = newArr.splice(source.index,1);
+            newArr.splice(destination.index,0,draggedItem);
+            const newCol = {
+                ...start,
+                order: newArr,
+            };
+            const newState = {
+                ...this.state,
+                [newCol.id]: newCol,
+
+            }
+            setState(newState);
+            return ;
+
+        }
+        const startOrder = Array.from(start.order);
+        startOrder.splice(source.index,1);
+        const newStart = {
+            ...start,
+            order: startOrder,
+        };
+        const finishOrder = Array.from(finish.order);
+        finishOrder.splice(destination.index,0,draggableID);
+        const newFin = {
+            ...finish,
+            order: finishOrder,
+        };
+
+        const newState = {
+            ...state,
+            columns: {
+                ...state.columns,
+                [newStart.title] : newStart,
+                [newFin.title] : newFin,
+            },
+        };
+        setState(newState);
+        
+
+    }
     return (
+        <DragDropContext onDragEnd={onDragEnd}>
         <div className="body">
-        <Nav />
+        <Nav students={nameState}/>
         <View />
         </div>
+        </DragDropContext>
     );
 }
