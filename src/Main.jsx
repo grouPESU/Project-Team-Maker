@@ -89,7 +89,8 @@ export default function Main() {
     const nameList = Object.values(state.students).map(student => student.name);
     const [nameState, nameSetState] = useState(nameList);
     const onDragEnd = result => {
-        const {destination, source, draggableID} = result;
+        const {destination, source, draggableId} = result;
+        console.log("ID",draggableId)
         if (!destination) return;
         if (destination.droppableId == source.droppableId &&
             destination.index == source.index) {
@@ -108,7 +109,7 @@ export default function Main() {
         const finish = state.columns[destination.droppableId];
         console.log("start", start.order);
         console.log("end",finish.order)
-        if(start != finish){
+        if(start == finish){
             const newArr = Array.from(Object.values(start).order);
             const [draggedItem] = newArr.splice(source.index,1);
             newArr.splice(destination.index,0,draggedItem);
@@ -125,18 +126,23 @@ export default function Main() {
             return ;
 
         }
+        console.log("Hello")
         const startOrder = Array.from(start.order);
         startOrder.splice(source.index,1);
+        console.log("startOrder",startOrder)
         const newStart = {
             ...start,
             order: startOrder,
         };
+        console.log("finish",finish)
         const finishOrder = Array.from(finish.order);
-        finishOrder.splice(destination.index,0,draggableID);
+        finishOrder.splice(destination.index,0,draggableId);
+        console.log("finOrder",finishOrder)
         const newFin = {
             ...finish,
             order: finishOrder,
         };
+        console.log("newFin",newFin.title);
 
         const newState = {
             ...state,
@@ -146,6 +152,7 @@ export default function Main() {
                 [newFin.title] : newFin,
             },
         };
+        console.log("state",newState)
         setState(newState);
         
 

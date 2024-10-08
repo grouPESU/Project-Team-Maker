@@ -6,7 +6,7 @@ const testData = {
     },
     columns:{
         'nameList': {
-            title: "Members",
+            title: "nameList",
             order: ['student-1','student-2','student-3'],
         },
         'team-1': {
