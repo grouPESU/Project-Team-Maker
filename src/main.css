@@ -67,8 +67,7 @@ ul li {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #404258;
-    box-shadow: rgba(17, 12, 46, 0.15) 0px 48px 100px 0px;
+    background: #404759;
 }
 
 .nav {

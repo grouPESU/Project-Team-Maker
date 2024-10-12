@@ -5,7 +5,6 @@ import testData from "./testData.js";
 
 
 function Nav({students}) {
-    console.log(students)
     return (
         <div className="nav">
         <div className="titlecard">
@@ -37,26 +36,41 @@ function Nav({students}) {
     );
 }
 
-function Team({index,teamId}) {
+function Team({index,teamId,state}) {
+    console.log("finalstate", state)
     return (
         <Droppable droppableId={teamId}>
         {(provided)=> (
-
-        <div className="team" ref={provided.innerRef} {...provided.droppableProps}>
-
-            {provided.placeholder}
-        </div>
+            <ul className="team" ref={provided.innerRef} {...provided.droppableProps}>
+            {state.columns[teamId].order.length > 0 ? (
+                state.columns[teamId].order.map((studentName, index) => (
+                    <Draggable key={studentName} draggableId={studentName} index={index}>
+                    {(provided) => (
+                        <li
+                        ref={provided.innerRef}
+                        {...provided.dragHandleProps}
+                        {...provided.draggableProps}
+                        >
+                        <Member num={studentName} />
+                        </li>
+                    )}
+                    </Draggable>
+                ))
+            ) : (
+                <li>No members available</li> // Placeholder message for empty array
+    )}
+    {provided.placeholder}
+</ul>
         )}
         </Droppable>
     )
 }
 
-function View() {
+function View({state}) {
     const [teams, setTeams] = useState([]);
 
     const addTeam = () => {
         setTeams([...teams, `team-${teams.length + 1}`]);  // Assign unique ID based on team number
-        console.log(`team-${teams.length + 1}`)
     }
     return (
         <div className="groupview">
@@ -66,7 +80,7 @@ function View() {
         </div>
         <div className="grouplist">
         {teams.map((teamId,index)=>(
-            <Team key={index} teamId={teamId}/>
+            <Team key={index} teamId={teamId} state={state}/>
         ))}
         </div>
         </div>
@@ -86,83 +100,79 @@ function Member({num}) {
 
 export default function Main() {
     const [state, setState] = useState(testData);
-    const nameList = Object.values(state.students).map(student => student.name);
-    const [nameState, nameSetState] = useState(nameList);
-    const onDragEnd = result => {
-        const {destination, source, draggableId} = result;
-        console.log("ID",draggableId)
-        if (!destination) return;
-        if (destination.droppableId == source.droppableId &&
-            destination.index == source.index) {
-            return;
-        }
-        if (destination.droppableId == "nameList") {
-            const newNameState = Array.from(nameState);  // Create a new array from nameState
-            const [removed] = newNameState.splice(source.index, 1);  // Remove the item from the source index
-            newNameState.splice(destination.index, 0, removed);  // Insert it at the destination index
 
-            nameSetState(newNameState);
-            console.log(nameState)
+    const onDragEnd = (result) => {
+        const { destination, source, draggableId } = result;
+        if (!destination) return;
+
+        // If the item was dropped back into the same place, do nothing
+        if (
+            destination.droppableId === source.droppableId &&
+            destination.index === source.index
+        ) {
             return;
         }
+
         const start = state.columns[source.droppableId];
         const finish = state.columns[destination.droppableId];
-        console.log("start", start.order);
-        console.log("end",finish.order)
-        if(start == finish){
-            const newArr = Array.from(Object.values(start).order);
-            const [draggedItem] = newArr.splice(source.index,1);
-            newArr.splice(destination.index,0,draggedItem);
+
+        console.log("I'm starting from; ", start.title, "and ending at: ",finish.title)
+        // Moving within the same column
+        if (start.title === finish.title) {
+            const newOrder = Array.from(start.order);
+            const [draggedItem] = newOrder.splice(source.index, 1);
+            newOrder.splice(destination.index, 0, draggedItem);
+
             const newCol = {
                 ...start,
-                order: newArr,
+                order: newOrder,
             };
+
             const newState = {
-                ...this.state,
-                [newCol.id]: newCol,
+                ...state,
+                columns: {
+                    ...state.columns,
+                    [newCol.title]: newCol,
+                },
+            };
 
-            }
             setState(newState);
-            return ;
-
+            return;
         }
-        console.log("Hello")
+
+        // Moving to a different column
         const startOrder = Array.from(start.order);
-        startOrder.splice(source.index,1);
-        console.log("startOrder",startOrder)
+        startOrder.splice(source.index, 1);
         const newStart = {
             ...start,
             order: startOrder,
         };
-        console.log("finish",finish)
+
         const finishOrder = Array.from(finish.order);
-        finishOrder.splice(destination.index,0,draggableId);
-        console.log("finOrder",finishOrder)
-        const newFin = {
+        finishOrder.splice(destination.index, 0, draggableId);
+        const newFinish = {
             ...finish,
             order: finishOrder,
         };
-        console.log("newFin",newFin.title);
 
         const newState = {
             ...state,
             columns: {
                 ...state.columns,
-                [newStart.title] : newStart,
-                [newFin.title] : newFin,
+                [newStart.title]: newStart,
+                [newFinish.title]: newFinish,
             },
         };
-        console.log("state",newState)
-        setState(newState);
-        
 
-    }
+        setState(newState);
+    };
+
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-        <div className="body">
-        <Nav students={nameState}/>
-        <View />
-        </div>
+            <div className="body">
+                <Nav students={state.columns.nameList.order} />
+                <View state={state}/>
+            </div>
         </DragDropContext>
     );
 }
