@@ -1,8 +1,8 @@
 const testData = {
     students : {
-        'student-1': {id: 'student-1', srn: "PES2UG22CS339", name: "Narayan S" },
-        'student-2': {id: 'student-2', srn: "PES2UG22CS338", name: "Sashank" },
-        'student-3': {id: 'student-3', srn: "PES2UG22CS340", name: "Unknown" },
+        'student-1': {id: 'student-1', srn: "423", name: "Alex" },
+        'student-2': {id: 'student-2', srn: "890", name: "jonah" },
+        'student-3': {id: 'student-3', srn: "900", name: "Unknown" },
     },
     columns:{
         'nameList': {
