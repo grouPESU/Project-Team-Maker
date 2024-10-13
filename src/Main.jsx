@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import "./main.css"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import testData from "./testData.js";
 
 
-function Nav({students}) {
+function Nav({state}) {
+    const students = state.columns.nameList.order;
+    console.log(state.students)
     return (
         <div className="nav">
         <div className="titlecard">
@@ -76,7 +78,7 @@ function View({state}) {
         <div className="groupview">
         <div className="groupnav">
 
-        <button onClick={addTeam}>Add Team</button>
+        <button className="button-85" onClick={addTeam}>Add Team</button>
         </div>
         <div className="grouplist">
         {teams.map((teamId,index)=>(
@@ -98,8 +100,25 @@ function Member({num}) {
     )
 }
 
+
+
 export default function Main() {
-    const [state, setState] = useState(testData);
+
+    const [state, setState] = useState({
+    students: {},
+    columns: {
+        nameList: { title: "nameList", order: [] },
+        'team-1': { title: "team-1", order: [] },
+        'team-2': { title: "team-2", order: [] },
+    }
+});
+
+    useEffect(() => {
+        fetch('http://localhost:3001/api/students')
+            .then(response => response.json())
+            .then(data => setState(data))
+            .catch(error => console.error('Error fetching students:', error));
+    }, []);
 
     const onDragEnd = (result) => {
         const { destination, source, draggableId } = result;
@@ -169,8 +188,8 @@ export default function Main() {
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <div className="body">
-                <Nav students={state.columns.nameList.order} />
+            <div className="body gradient-background">
+                <Nav state={state} />
                 <View state={state}/>
             </div>
         </DragDropContext>
