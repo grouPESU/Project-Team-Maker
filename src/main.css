@@ -17,10 +17,11 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    overflow-y: scroll;
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
-.body {
+.mainbody {
     background: #404258;
     min-width: 100vw;
     min-height: 100vh;
@@ -95,6 +96,7 @@ ul li {
     background: rgba(0,0,0,0.3);
     height: 30vh;
     animation: smoothAppear 0.75s ease;
+    overflow-y: auto;
 }
 
 
@@ -221,7 +223,7 @@ ul li {
 .gradient-background {
   background: linear-gradient(98deg,#2e7dd0,#4c286e,#6a3fef,#b21900);
   background-size: 240% 240%;
-  animation: gradient-animation 40s ease infinite;
+  animation: gradient-animation 12s ease infinite;
 }
 
 @keyframes gradient-animation {

@@ -12,7 +12,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root', 
   password: '2289', 
-  database: 'groupes' 
+  database: 'finalgroupes' 
 });
 
 app.use(express.json());
@@ -145,10 +145,10 @@ const insertTeachers = (teachers, res) => {
 // don't run this part, need to first set up triggers in the db
 app.post('/reset', (req, res) => {
     const resetQueries = [
-      'TRUNCATE TABLE StudentEmail',
-      'TRUNCATE TABLE TeacherEmail',
-      'TRUNCATE TABLE Student',
-      'TRUNCATE TABLE Teacher'
+      'DELETE FROM StudentEmail',
+      'DELETE FROM TeacherEmail',
+      'DELETE FROM Student',
+      'DELETE FROM Teacher'
     ];
 
     const executeQueries = (queries, index) => {
