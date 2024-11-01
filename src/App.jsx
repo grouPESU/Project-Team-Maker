@@ -1,12 +1,13 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
-import PrivateRoute from './PrivateRoute';
+import  PrivateRoute from './PrivateRoute'; // Import from the same file
 import LoginForm from './Login';
 import Main from './Main';
 import Admin from './admin';
 import RegistrationForm from './Register';
 import Assignment from './Teacher';
+import Assn from './Assn';
 
 function App() {
   return (
@@ -42,7 +43,15 @@ function App() {
               </PrivateRoute>
             }
           />
-
+          <Route
+            path="/assignment"
+            element={
+              <PrivateRoute allowedRoles={['student']}>
+                <Assn />
+              </PrivateRoute>
+            }
+          />
+          
           {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           

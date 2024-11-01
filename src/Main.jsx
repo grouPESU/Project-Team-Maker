@@ -1,46 +1,37 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation} from "react-router-dom";
 import styles from "./main.module.css"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { io } from "socket.io-client";
 
-//function clickEffect(e){
-//  var d=document.createElement("div");
-//  d.className="clickEffect";
-//  d.style.top=e.clientY+"px";d.style.left=e.clientX+"px";
-//  document.body.appendChild(d);
-//  d.addEventListener('animationend',function(){d.parentElement.removeChild(d);}.bind(this));
-//}
-//document.addEventListener('click',clickEffect);
-//
 
-    function useClickEffect() {
-        useEffect(() => {
-            const clickEffect = (e) => {
-                const d = document.createElement("div");
-                d.className = styles.clickEffect; // Use CSS module class
-                d.style.top = `${e.clientY}px`;
-                d.style.left = `${e.clientX}px`;
-                document.body.appendChild(d);
+function useClickEffect() {
+    useEffect(() => {
+        const clickEffect = (e) => {
+            const d = document.createElement("div");
+            d.className = styles.clickEffect; // Use CSS module class
+            d.style.top = `${e.clientY}px`;
+            d.style.left = `${e.clientX}px`;
+            document.body.appendChild(d);
 
-                const removeDiv = () => {
-                    d.removeEventListener('animationend', removeDiv);
-                    d.parentElement?.removeChild(d);
-                };
-
-                d.addEventListener('animationend', removeDiv);
+            const removeDiv = () => {
+                d.removeEventListener('animationend', removeDiv);
+                d.parentElement?.removeChild(d);
             };
 
-            document.addEventListener('click', clickEffect);
+            d.addEventListener('animationend', removeDiv);
+        };
 
-            // Cleanup listener on component unmount
-            return () => {
-                document.removeEventListener('click', clickEffect);
-            };
-        }, []); // Empty dependency array means this runs once on mount
-    }
-function Nav({state}) {
+        document.addEventListener('click', clickEffect);
+
+        // Cleanup listener on component unmount
+        return () => {
+            document.removeEventListener('click', clickEffect);
+        };
+    }, []); // Empty dependency array means this runs once on mount
+}
+function Nav({state,assignmentInfo}) {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
 
@@ -50,10 +41,14 @@ function Nav({state}) {
     };
 
     const students = state.columns.nameList.order;
+    console.log(assignmentInfo)
     return (
         <div className={styles.nav}>
         <div className={styles.titlecard}>
-        <h1>TITLE</h1>
+        <h1>{assignmentInfo?.assignmentTitle || 'No Assignment Selected'}</h1>
+        {assignmentInfo?.assignmentDescription && (
+            <p className={styles.description}>{assignmentInfo.description}</p>
+        )}
         </div>
         <div className={styles.navControls}>
         <button className={styles.button85} onClick={handleLogout}>Logout</button>
@@ -102,8 +97,8 @@ function Team({index, teamId, state, onDeleteTeam}) {
     return (
         <div className={styles.teamContainer}>
         <div className={styles.teamIdOverlay}>
-                ID: {teamId}
-            </div>
+        ID: {teamId}
+        </div>
 
         <button 
         className={styles.deleteTeamButton}
@@ -141,7 +136,7 @@ function Team({index, teamId, state, onDeleteTeam}) {
     );
 }
 
-function View({state, setState, teamMembers}) {
+function View({state, setState, teamMembers, assignmentInfo}) {
     const [teams, setTeams] = useState([]);
     const { user } = useAuth();
 
@@ -186,7 +181,8 @@ function View({state, setState, teamMembers}) {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    creatorId: user.id
+                    creatorId: user.id,
+                    assignmentId: assignmentInfo.assignmentId
                 }),
             });
 
@@ -263,6 +259,8 @@ function Member({num}) {
     const [teamMembers, setTeamMembers] = useState({});
     const [socket, setSocket] = useState(null);
     const { user } = useAuth();
+    const location = useLocation();
+    const assignmentInfo = location.state || {};
 
     useEffect(() => {
         const newSocket = io('http://localhost:3001');
@@ -370,13 +368,14 @@ function Member({num}) {
         const fetchTeamsAndMembers = async () => {
             try {
                 // Fetch teams first
-                const teamResponse = await fetch('http://localhost:3001/api/teamsync');
+                const teamResponse = await fetch(`http://localhost:3001/api/teamsync/${assignmentInfo.assignmentId}`);
                 const teamData = await teamResponse.json();
                 console.log(teamData)
                 setTeamMembers(teamData);
 
                 // Then fetch students
-                const studentsResponse = await fetch('http://localhost:3001/api/students');
+                const studentsResponse = await fetch(`http://localhost:3001/api/students/${assignmentInfo.assignmentId}`);
+
                 const studentsData = await studentsResponse.json();
                 setState(prevState => ({
                     ...studentsData,
@@ -510,8 +509,8 @@ function Member({num}) {
     return (
         <DragDropContext onDragEnd={onDragEnd}>
         <div className= {styles.mainbody} >
-        <Nav state={state} />
-        <View state={state} setState={setState} teamMembers={teamMembers}/>
+        <Nav state={state} assignmentInfo={assignmentInfo}/>
+        <View state={state} setState={setState} teamMembers={teamMembers} assignmentInfo={assignmentInfo}/>
         </div>
         </DragDropContext>
     );

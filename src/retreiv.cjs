@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
     });
 });
 
-async function fetchDataFromDB() {
+async function fetchDataFromDB(assignmentId) {
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [rows] = await connection.execute(
@@ -57,16 +57,16 @@ async function fetchDataFromDB() {
                 WHERE team_id IN (
                     SELECT team_id
                     FROM Team
-                    WHERE assignment_id = 'PESASSN000001'
+                    WHERE assignment_id = ?
                 )
-            )`
+            )`,
+            [assignmentId]
         );
         return rows;
     } finally {
         await connection.end();
     }
 }
-
 
 // Add member to team
 ;app.post('/api/teams/:teamId/members', async (req, res) => {
@@ -97,8 +97,8 @@ async function fetchDataFromDB() {
     }
 });
 
-app.get('/api/teamsync', async (req, res) => {
-    const assignmentId = 'PESASSN000001'; // Fixed assignment ID
+app.get('/api/teamsync/:assignmentId', async (req, res) => {
+    const { assignmentId } = req.params;
     const connection = await mysql.createConnection(dbConfig);
 
     try {
@@ -110,14 +110,13 @@ app.get('/api/teamsync', async (req, res) => {
             [assignmentId]
         );
 
-        // Transform the data to match frontend state structure
         const transformedTeams = teams.reduce((acc, curr) => {
             if (!acc[curr.team_id]) {
                 acc[curr.team_id] = {
                     title: curr.team_id,
                     order: [],
-                    leader: curr.leader_team_id, // Add leader information
-                    memberRoles: {} // Track roles for each member
+                    leader: curr.leader_team_id,
+                    memberRoles: {}
                 };
             }
             if (curr.team_member_id) {
@@ -136,52 +135,13 @@ app.get('/api/teamsync', async (req, res) => {
     }
 });
 
-//app.get('/api/teamsync', async (req, res) => {
-//    const assignmentId = 'PESASSN000001'; // Fixed assignment ID
-//    const connection = await mysql.createConnection(dbConfig);
-//
-//    try {
-//        const [teams] = await connection.execute(
-//            `SELECT t.team_id, t.leader_team_id, tm.team_member_id 
-//            FROM Team t
-//            LEFT JOIN Team_member tm ON t.team_id = tm.team_id
-//            WHERE t.assignment_id = ?`,
-//            [assignmentId]
-//        );
-//
-//        // Transform the data to match frontend state structure
-//        const transformedTeams = teams.reduce((acc, curr) => {
-//            if (!acc[curr.team_id]) {
-//                acc[curr.team_id] = {
-//                    title: curr.team_id,
-//                    order: []
-//                };
-//            }
-//            if (curr.team_member_id) {
-//                acc[curr.team_id].order.push(curr.team_member_id);
-//            }
-//            return acc;
-//        }, {});
-//
-//        res.json(transformedTeams);
-//    } catch (error) {
-//        console.error('Error fetching teams:', error);
-//        res.status(500).json({ error: 'Failed to fetch teams' });
-//    } finally {
-//        await connection.end();
-//    }
-//});
-
 app.post('/api/teams', async (req, res) => {
-    const { creatorId } = req.body;
-    const assignmentId = "PESASSN000001"; // Consistent with other routes
+    const { creatorId, assignmentId } = req.body;
     const teamId = generateTeamId();
     const connection = await mysql.createConnection(dbConfig);
 
     try {
-        // Check if the user is already a member of a team for this assignment
         const isInTeam = await checkStudentTeamMembership(connection, creatorId, assignmentId);
-        console.log("Is he in a team?", isInTeam)
 
         if (isInTeam) {
             return res.status(400).json({
@@ -192,13 +152,11 @@ app.post('/api/teams', async (req, res) => {
 
         await connection.beginTransaction();
 
-        // Create team record with assignment_id
         await connection.execute(
             'INSERT INTO Team (team_id, leader_team_id, assignment_id) VALUES (?, ?, ?)',
             [teamId, creatorId, assignmentId]
         );
 
-        // Add creator as team member with leader role
         await connection.execute(
             'INSERT INTO Team_member (team_id, team_member_id, role) VALUES (?, ?, ?)',
             [teamId, creatorId, 'leader']
@@ -212,7 +170,8 @@ app.post('/api/teams', async (req, res) => {
                 title: teamId,
                 order: [creatorId]
             },
-            creatorId
+            creatorId,
+            assignmentId
         });
         res.json({ teamId, message: 'Team created successfully' });
     } catch (error) {
@@ -311,42 +270,6 @@ app.delete('/api/teams/:teamId', async (req, res) => {
     }
 });
 
-// Fetch teams for assignment
-app.get('/api/teams', async (req, res) => {
-    const assignmentId = '1234'; // Fixed assignment ID
-    const connection = await mysql.createConnection(dbConfig);
-
-    try {
-        const [teams] = await connection.execute(
-            `SELECT t.team_id, t.leader_team_id, tm.team_member_id 
-            FROM Team t
-            LEFT JOIN Team_member tm ON t.team_id = tm.team_id
-            WHERE t.assignment_id = ?`,
-            [assignmentId]
-        );
-
-        // Transform the data to match frontend state structure
-        const transformedTeams = teams.reduce((acc, curr) => {
-            if (!acc[curr.team_id]) {
-                acc[curr.team_id] = {
-                    title: curr.team_id,
-                    order: []
-                };
-            }
-            if (curr.team_member_id) {
-                acc[curr.team_id].order.push(curr.team_member_id);
-            }
-            return acc;
-        }, {});
-
-        res.json(transformedTeams);
-    } catch (error) {
-        console.error('Error fetching teams:', error);
-        res.status(500).json({ error: 'Failed to fetch teams' });
-    } finally {
-        await connection.end();
-    }
-});
 
 async function checkStudentTeamMembership(connection, studentId, assignmentId) {
     const [existingTeams] = await connection.execute(
@@ -385,18 +308,17 @@ function transformData(rows) {
     };
 }
 
-app.get('/api/students', async (req, res) => {
+app.get('/api/students/:assignmentId', async (req, res) => {
+    const { assignmentId } = req.params;
     try {
-        const rows = await fetchDataFromDB();
+        const rows = await fetchDataFromDB(assignmentId);
         const transformedData = transformData(rows);
-        console.log(transformData)
         res.json(transformedData);
     } catch (error) {
         console.error('Error fetching data:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-
 server.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

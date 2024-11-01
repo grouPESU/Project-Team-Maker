@@ -1,0 +1,30 @@
+.assignmentsContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.assignmentsList {
+  list-style: none;
+  padding: 0;
+}
+
+.assignmentItem {
+  padding: 15px;
+  margin: 10px 0;
+  background-color: var(--color-bright-yellow);
+  color: var(--active-tab-background);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.assignmentItem:hover {
+  background-color: #e0e0e0;
+}
+
+.assignmentDetails {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}

@@ -80,7 +80,7 @@ export default function LoginForm() {
                     navigate('/teacher');
                     break;
                 case 'student':
-                    navigate('/main');
+                    navigate('/assignment');
                     break;
                 default:
                     navigate('/main');
