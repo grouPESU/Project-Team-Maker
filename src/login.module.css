@@ -4,61 +4,86 @@
     box-sizing: border-box;
     overflow: clip;
     font-family: "Lucida Console", Monaco, monospace;
-    }
+}
 
-body{
+body {
     background-color: var(--background);
 }
 
-.box{
-    background: rgba(0,0,0,0.5);
+.loginContainer {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: row;
+    background-color: var(--background);
+    min-width: 100vw;
+}
+
+/* Left side styles */
+.leftSection {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 100px;
+}
+
+.logo {
+    position: relative;
+    font-size: 6rem; /* Increased size for better effect */
+    font-weight: 900; /* Heavier weight for the effect */
+    text-transform: uppercase;
+    color: rgba(225, 225, 225, 0.01);
+    background-image: url("https://images.deccanherald.com/deccanherald/import/sites/dh/files/article_images/2020/01/15/file72lbzcopnboxdup26zo-1579052778.jpg?w=1200&h=675&auto=format%2Ccompress&fit=max&enlarge=true");
+    background-repeat: repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: animate 15s ease-in-out infinite;
+    margin-bottom: 2rem;
+    font-family: 'Raleway', sans-serif;
+}
+
+@keyframes animate {
+    0%, 100% {
+        background-position: left top;
+    }
+    25% {
+        background-position: right bottom;
+    }
+    50% {
+        background-position: left bottom;
+    }
+    75% {
+        background-position: right top;
+    }   
+}
+
+.typewriterContainer {
+    position: relative;
+    font-size: 2.5em;
+    font-family: monospace;
+    color: white; /* Changed to white for better contrast on black background */
+    margin: 20px;
+    text-align: center;
+}
+
+/* Right side styles */
+.rightSection {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.box {
+    background: rgba(255, 255, 255, 0.1); /* Adjusted for dark theme */
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
-}
-
-.footer {
-    position: absolute;
-    bottom: 10px;           /* Adjust to control the distance from the bottom */
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;           /* Match color to the rest of the design */
-    font-size: 1rem;        /* Adjust font size as needed */
-    text-align: center;
-}
-
-.typewriterContainer {
-  font-size: 1.5em;
-  position: absolute;
-  transform: translateX(-50%);
-  top: 60px;              /* Adjust to control distance below the logo */
-  left: 50%;
-  font-family: monospace;
-  color: #333;
-  margin: 20px;
-}
-
-.logo {
-    position: absolute;
-    top: 20px;             /* Adjust to control distance from top */
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 2rem;       /* Adjust size as needed */
-    color: white;          /* Change color to contrast with background */
-    font-weight: bold;
-    text-align: center;
-}
-.loginContainer {
-    flex-direction: column;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--background);
-    padding: 20px;
-    min-width: 50vw;
 }
 
 .loginBox {
@@ -71,6 +96,18 @@ body{
     max-width: 400px;
 }
 
+.footer {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 1rem;
+    text-align: center;
+    z-index: 10;
+}
+
+/* Preserve all other existing styles */
 h2 {
     text-align: center;
     color: #333;
@@ -150,20 +187,3 @@ input:focus, select:focus {
     margin-bottom: 1rem;
     font-size: 0.875rem;
 }
-/*.gradient-background {*/
-/*  background: linear-gradient(180deg,#fc8a08,#190263);*/
-/*  background-size: 120% 120%;*/
-/*  animation: gradient-animation 12s ease infinite;*/
-/*}*/
-/**/
-/*@keyframes gradient-animation {*/
-/*  0% {*/
-/*    background-position: 0% 50%;*/
-/*  }*/
-/*  50% {*/
-/*    background-position: 100% 50%;*/
-/*  }*/
-/*  100% {*/
-/*    background-position: 0% 50%;*/
-/*  }*/
-/*}*/

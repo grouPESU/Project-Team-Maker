@@ -5,6 +5,41 @@ import styles from "./main.module.css"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { io } from "socket.io-client";
 
+//function clickEffect(e){
+//  var d=document.createElement("div");
+//  d.className="clickEffect";
+//  d.style.top=e.clientY+"px";d.style.left=e.clientX+"px";
+//  document.body.appendChild(d);
+//  d.addEventListener('animationend',function(){d.parentElement.removeChild(d);}.bind(this));
+//}
+//document.addEventListener('click',clickEffect);
+//
+
+    function useClickEffect() {
+        useEffect(() => {
+            const clickEffect = (e) => {
+                const d = document.createElement("div");
+                d.className = styles.clickEffect; // Use CSS module class
+                d.style.top = `${e.clientY}px`;
+                d.style.left = `${e.clientX}px`;
+                document.body.appendChild(d);
+
+                const removeDiv = () => {
+                    d.removeEventListener('animationend', removeDiv);
+                    d.parentElement?.removeChild(d);
+                };
+
+                d.addEventListener('animationend', removeDiv);
+            };
+
+            document.addEventListener('click', clickEffect);
+
+            // Cleanup listener on component unmount
+            return () => {
+                document.removeEventListener('click', clickEffect);
+            };
+        }, []); // Empty dependency array means this runs once on mount
+    }
 function Nav({state}) {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
@@ -20,10 +55,11 @@ function Nav({state}) {
         <div className={styles.titlecard}>
         <h1>TITLE</h1>
         </div>
-        <div className="nav-controls">
+        <div className={styles.navControls}>
         <button className={styles.button85} onClick={handleLogout}>Logout</button>
         </div>
         <div className={styles.bruh}>
+        <h1> Ungrouped Students </h1>
         <Droppable droppableId="nameList">
         {(provided)=> (
             <ul ref={provided.innerRef} {...provided.droppableProps}>
@@ -470,6 +506,7 @@ function Member({num}) {
             setState(state);
         }
     };
+    useClickEffect();
     return (
         <DragDropContext onDragEnd={onDragEnd}>
         <div className= {styles.mainbody} >
