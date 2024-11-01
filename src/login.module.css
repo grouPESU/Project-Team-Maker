@@ -6,6 +6,10 @@
     font-family: "Lucida Console", Monaco, monospace;
     }
 
+body{
+    background-color: var(--background);
+}
+
 .box{
     background: rgba(0,0,0,0.5);
     padding: 2rem;
@@ -15,16 +19,49 @@
     max-width: 400px;
 }
 
-.login-container {
+.footer {
+    position: absolute;
+    bottom: 10px;           /* Adjust to control the distance from the bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;           /* Match color to the rest of the design */
+    font-size: 1rem;        /* Adjust font size as needed */
+    text-align: center;
+}
+
+.typewriterContainer {
+  font-size: 1.5em;
+  position: absolute;
+  transform: translateX(-50%);
+  top: 60px;              /* Adjust to control distance below the logo */
+  left: 50%;
+  font-family: monospace;
+  color: #333;
+  margin: 20px;
+}
+
+.logo {
+    position: absolute;
+    top: 20px;             /* Adjust to control distance from top */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;       /* Adjust size as needed */
+    color: white;          /* Change color to contrast with background */
+    font-weight: bold;
+    text-align: center;
+}
+.loginContainer {
+    flex-direction: column;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f5f5f5;
+    background-color: var(--background);
     padding: 20px;
+    min-width: 50vw;
 }
 
-.login-box {
+.loginBox {
     background: white;
     color: black;
     padding: 2rem;
@@ -48,7 +85,7 @@ h2 {
     font-size: 0.875rem;
 }
 
-.form-group {
+.formGroup {
     margin-bottom: 1rem;
 }
 
@@ -60,6 +97,7 @@ label {
 }
 
 input, select {
+    color: var(--color-black);
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ddd;
@@ -74,7 +112,7 @@ input:focus, select:focus {
     box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
-.submit-button {
+.submitButton {
     width: 100%;
     padding: 0.75rem;
     background-color: #4a90e2;
@@ -86,16 +124,16 @@ input:focus, select:focus {
     transition: background-color 0.2s;
 }
 
-.submit-button:hover {
+.submitButton:hover {
     background-color: #357abd;
 }
 
-.submit-button:disabled {
+.submitButton:disabled {
     background-color: #ccc;
     cursor: not-allowed;
 }
 
-.error-message {
+.errorMessage {
     background-color: #fee2e2;
     color: #dc2626;
     padding: 0.75rem;
@@ -104,7 +142,7 @@ input:focus, select:focus {
     font-size: 0.875rem;
 }
 
-.success-message {
+.successMessage {
     background-color: #ecfdf5;
     color: #059669;
     padding: 0.75rem;
@@ -112,20 +150,20 @@ input:focus, select:focus {
     margin-bottom: 1rem;
     font-size: 0.875rem;
 }
-.gradient-background {
-  background: linear-gradient(180deg,#fc8a08,#190263);
-  background-size: 120% 120%;
-  animation: gradient-animation 12s ease infinite;
-}
-
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
+/*.gradient-background {*/
+/*  background: linear-gradient(180deg,#fc8a08,#190263);*/
+/*  background-size: 120% 120%;*/
+/*  animation: gradient-animation 12s ease infinite;*/
+/*}*/
+/**/
+/*@keyframes gradient-animation {*/
+/*  0% {*/
+/*    background-position: 0% 50%;*/
+/*  }*/
+/*  50% {*/
+/*    background-position: 100% 50%;*/
+/*  }*/
+/*  100% {*/
+/*    background-position: 0% 50%;*/
+/*  }*/
+/*}*/

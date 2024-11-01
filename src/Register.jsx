@@ -1,6 +1,24 @@
 import { useState } from 'react';
-import "./login.css"
+import styles from "./login.module.css"
 
+import Typewriter from 'typewriter-effect';
+
+function TypewriterComponent() {
+  return (
+    <div className={styles.typewriterContainer}>
+      <Typewriter
+        options={{
+            strings: ['Welcome :D', 'Create Teams Effortlessly', 'No more confusions'],
+          autoStart: true,
+          loop: true,
+          delay: 75,        // Controls typing speed
+          deleteSpeed: 50,  // Controls delete speed
+          cursor: '|',      // Custom cursor character
+        }}
+      />
+    </div>
+  );
+}
 export default function RegistrationForm() {
   const [formData, setFormData] = useState({
     id: '',
@@ -95,12 +113,15 @@ export default function RegistrationForm() {
 
   return (
     <div className="registration-container gradient-background">
+      <h1 className={styles.logo}> GrouPES </h1>
+      <TypewriterComponent />
+
       <div className="registration-box">
         <h2>Register</h2>
         <p className="subtitle">Create your account</p>
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="role">Role</label>
             <select
               id="role"
@@ -116,7 +137,7 @@ export default function RegistrationForm() {
             </select>
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="id">{getIdLabel()}</label>
             <input
               id="id"
@@ -129,7 +150,7 @@ export default function RegistrationForm() {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="firstName">First Name</label>
             <input
               id="firstName"
@@ -142,7 +163,7 @@ export default function RegistrationForm() {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="lastName">Last Name</label>
             <input
               id="lastName"
@@ -155,7 +176,7 @@ export default function RegistrationForm() {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="dob">Date of Birth</label>
             <input
               id="dob"
@@ -167,7 +188,7 @@ export default function RegistrationForm() {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -180,7 +201,7 @@ export default function RegistrationForm() {
             />
           </div>
 
-          <div className="form-group">
+          <div className={styles.formGroup}>
             <label htmlFor="confirmPassword">Confirm Password</label>
             <input
               id="confirmPassword"
@@ -194,7 +215,7 @@ export default function RegistrationForm() {
           </div>
 
           {error && (
-            <div className="error-message">
+            <div className={styles.errorMessage}>
               {error}
             </div>
           )}
@@ -227,8 +248,9 @@ export default function RegistrationForm() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background-color: #f5f5f5;
+          background-color: var(--background);
           padding: 20px;
+          min-width: 50vw;
         }
 
         .registration-box {

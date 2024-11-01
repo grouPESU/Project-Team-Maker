@@ -2,10 +2,33 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext'; // You'll need to create this
-import "./login.css"
+import loginStyles from "./login.module.css"
+import Typewriter from 'typewriter-effect';
+
+function TypewriterComponent() {
+  return (
+    <div className={loginStyles.typewriterContainer}>
+      <Typewriter
+        options={{
+            strings: ['Welcome :D', 'Create Teams Effortlessly', 'No more confusions'],
+          autoStart: true,
+          loop: true,
+          delay: 75,        // Controls typing speed
+          deleteSpeed: 50,  // Controls delete speed
+          cursor: '|',      // Custom cursor character
+        }}
+      />
+    </div>
+  );
+}
 
 export default function LoginForm() {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+
+    const handleRegisterClick = () => {
+        navigate('/register');
+    };
+
   const { login } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -70,13 +93,15 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="login-container gradient-background">
-      <div className="login-box box">
+    <div className={loginStyles.loginContainer}>
+      <h1 className={loginStyles.logo}> GrouPES </h1>
+      <TypewriterComponent />
+      <div className={`${loginStyles.loginBox} ${loginStyles.box}`}>
         <h2>Sign In to GrouPES</h2>
-        <p className="subtitle">Enter your credentials to access your account</p>
+        <p className={loginStyles.subtitle}>Enter your credentials to access your account</p>
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className={loginStyles.formGroup}>
             <label htmlFor="role">Role</label>
             <select
               id="role"
@@ -91,7 +116,7 @@ export default function LoginForm() {
               <option value="student">Student</option>
             </select>
           </div>
-          <div className="form-group">
+          <div className={loginStyles.formGroup}>
             <label htmlFor="username">Username</label>
             <input
               id="username"
@@ -103,7 +128,7 @@ export default function LoginForm() {
               placeholder="Enter your username"
             />
           </div>
-          <div className="form-group">
+          <div className={loginStyles.formGroup}>
             <label htmlFor="password">Password</label>
             <input
               id="password"
@@ -115,16 +140,26 @@ export default function LoginForm() {
               placeholder="Enter your password"
             />
           </div>
-          {error && <div className="error-message">{error}</div>}
+          {error && <div className={loginStyles.errorMessage}>{error}</div>}
           <button 
             type="submit" 
             disabled={isLoading}
-            className="submit-button"
+            className={loginStyles.submitButton}
           >
             {isLoading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
+      </button>
+      <button 
+      type="button" 
+      onClick={handleRegisterClick} 
+      className={loginStyles.submitButton}
+      >
+      Register
+      </button>
+      </form>
       </div>
+          <footer className={loginStyles.footer}>
+      Created with 🧠 by Narayan and Sashank.
+    </footer>
     </div>
   );
 }

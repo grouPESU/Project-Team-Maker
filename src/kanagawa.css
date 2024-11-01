@@ -1,0 +1,42 @@
+:root {
+    /* Basic Colors */
+    --foreground: #c5c9c5;
+    --background: #181616;
+    --selection-foreground: #c8c093;
+    --selection-background: #2d4f67;
+
+    /* Cursor Color */
+    --cursor: #c8c093;
+
+    /* URL Color */
+    --url-color: #72a7bc;
+
+    /* Tab Bar Colors */
+    --active-tab-foreground: #c8c093;
+    --active-tab-background: #12120f;
+    --inactive-tab-foreground: #a6a69c;
+    --inactive-tab-background: #12120f;
+
+    /* Basic 16 Colors */
+    --color-black: #0d0c0c;
+    --color-bright-black: #a6a69c;
+    --color-red: #c4746e;
+    --color-bright-red: #e46876;
+    --color-green: #8a9a7b;
+    --color-bright-green: #87a987;
+    --color-yellow: #c4b28a;
+    --color-bright-yellow: #e6c384;
+    --color-blue: #8ba4b0;
+    --color-bright-blue: #7fb4ca;
+    --color-magenta: #a292a3;
+    --color-bright-magenta: #938aa9;
+    --color-cyan: #8ea4a2;
+    --color-bright-cyan: #7aa89f;
+    --color-white: #c8c093;
+    --color-bright-white: #c5c9c5;
+
+    /* Additional Colors */
+    --color16: #b6927b;
+    --color17: #b98d7b;
+}
+
