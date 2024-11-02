@@ -1,41 +1,364 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    overflow: scroll;
-    font-family: "Lucida Console", Monaco, monospace;
-    }
-h1{
-    color: #d7d7d7;
-}
-body {
-    /*background: #404258;*/
-    min-width: 100vw;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-/*.gradient-background {*/
-/*  background: linear-gradient(144deg,#fc8a08,#190263,#00b4d8);*/
-/*  background-size: 180% 180%;*/
-/*  animation: gradient-animation 15s ease infinite;*/
-/*  min-height: 100vh;*/
-/*  min-width: 100vw;*/
-/*}*/
-/**/
-/*@keyframes gradient-animation {*/
-/*  0% {*/
-/*    background-position: 0% 50%;*/
-/*  }*/
-/*  50% {*/
-/*    background-position: 100% 50%;*/
-/*  }*/
-/*  100% {*/
-/*    background-position: 0% 50%;*/
-/*  }*/
-/*}*/
-/**/
-/**/
+.profile {
+  color: var(--color-bright-yellow);
+  background: var(--background);
+  border-radius: 8px;
+  border: 1px dotted var(--color-bright-yellow);
+  padding: 1rem;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  gap: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile svg {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+}
+
+.mainBody {
+  padding-top: 4rem;
+}
+
+.profile .tabButton {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.title {
+  color: var(--color-bright-yellow);
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.tabButton {
+  background-color: var(--inactive-tab-background);
+  color: var(--inactive-tab-foreground);
+  border: 1px solid var(--color-bright-black);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.tabButton:hover,
+.activeTab {
+  background-color: var(--active-tab-background);
+  color: var(--active-tab-foreground);
+  border-color: var(--color-bright-yellow);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--color-black);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.input,
+.textarea {
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-bright-black);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 1rem;
+}
+
+.input[type="text"],
+.input[type="number"],
+.react-datepicker__input-container input {
+  width: 100%;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-bright-blue);
+  box-shadow: 0 0 0 2px rgba(127, 180, 202, 0.2);
+}
+
+.textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.submitButton,
+.updateButton,
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--color-blue);
+  color: var(--color-black);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.submitButton:hover,
+.updateButton:hover {
+  background-color: var(--color-bright-blue);
+}
+
+.cancelButton {
+  background-color: var(--color-red);
+}
+
+.cancelButton:hover {
+  background-color: var(--color-bright-red);
+}
+
+.assignments {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.assignmentBox {
+  background-color: var(--color-black);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.assignmentBox:hover {
+  transform: translateY(-5px);
+}
+
+.assignmentTitle {
+  color: var(--color-bright-yellow);
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.assignmentDescription,
+.assignmentDetail {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.editButton {
+  background-color: var(--color-green);
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-black);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+}
+
+.viewButton {
+  background-color: var(--color-blue);
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-black);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.editButton:hover {
+  background-color: var(--color-bright-green);
+}
+
+.deleteButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-red);
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-black);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.deleteButton:hover {
+  background-color: var(--color-bright-red);
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popupContent {
+  background-color: var(--background);
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.popupTitle {
+  color: var(--color-bright-yellow);
+  margin-bottom: 1.5rem;
+}
+
+.teamSizeDisplay {
+  background-color: var(--inactive-tab-background);
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-bright-black);
+  margin: 1rem 0;
+}
+
+.teamSizeDisplay p {
+  color: var(--color-bright-white);
+  margin: 0;
+}
+
+/* Import the base styles */
+@import 'react-datepicker/dist/react-datepicker.css';
+
+/* Override DatePicker styles */
+:global(.react-datepicker) {
+  background-color: var(--color-black);
+  border: 1px solid var(--color-bright-black);
+  border-radius: 8px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--foreground);
+}
+
+:global(.react-datepicker__header) {
+  background-color: var(--background);
+  border-bottom: 1px solid var(--color-bright-black);
+}
+
+:global(.react-datepicker__current-month),
+:global(.react-datepicker__day-name),
+:global(.react-datepicker__day) {
+  color: var(--foreground);
+}
+
+:global(.react-datepicker__day:hover) {
+  background-color: var(--color-blue);
+  color: var(--color-black);
+}
+
+:global(.react-datepicker__day--selected) {
+  background-color: var(--color-bright-blue);
+  color: var(--color-black);
+}
+
+:global(.react-datepicker__day--keyboard-selected) {
+  background-color: var(--color-blue);
+  color: var(--color-black);
+}
+
+:global(.react-datepicker__navigation-icon::before) {
+  border-color: var(--foreground);
+}
+
+:global(.react-datepicker__navigation:hover *::before) {
+  border-color: var(--color-bright-blue);
+}
+
+@media (max-width: 768px) {
+  .app {
+    padding: 1rem;
+  }
+
+  .assignments {
+    grid-template-columns: 1fr;
+  }
+
+  .popupContent {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .tabButton {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.profileContainer {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 50;
+}

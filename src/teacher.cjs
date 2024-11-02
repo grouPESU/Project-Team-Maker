@@ -21,8 +21,7 @@ db.connect((err) => {
 
 
 app.post('/createAssignment', (req, res) => {
-    const { title, description, min_team_size, max_team_size, deadline, classes } = req.body;
-    const teacher_id = 'PES4UG19CS118'; // Hardcoded teacher_id
+    const { title, description, min_team_size, max_team_size, deadline, classes, teacher_id } = req.body;
   
     // Get the last assignment_id
     db.query('SELECT assignment_id FROM Assignment ORDER BY assignment_id DESC LIMIT 1', (err, result) => {
@@ -54,7 +53,9 @@ app.post('/createAssignment', (req, res) => {
   });
   
   app.get('/getAssignments', (req, res) => {
-    const teacher_id = 'PES4UG19CS118'; // Hardcoded teacher_id
+    //const teacher_id = 'PES4UG19CS121'; // Hardcoded teacher_id
+    const  teacher_id  = req.query.teacher_id;
+      console.log(teacher_id)
     const sql = `
       SELECT a.*, GROUP_CONCAT(ac.class) as classes
       FROM Assignment a
@@ -123,3 +124,4 @@ app.delete('/deleteAssignment/:id', (req, res) => {
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

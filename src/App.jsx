@@ -8,6 +8,7 @@ import Admin from './admin';
 import RegistrationForm from './Register';
 import Assignment from './Teacher';
 import Assn from './Assn';
+import TeacherGroup from './TeacherGroup'
 
 function App() {
   return (
@@ -24,6 +25,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Main />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/groups"
+            element={
+              <PrivateRoute>
+                <TeacherGroup />
               </PrivateRoute>
             }
           />
