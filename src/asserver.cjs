@@ -36,7 +36,7 @@ app.get('/student/assignments', async (req, res) => {
     try {
         await db.query('SELECT 1');
         const query = `
-            SELECT a.assignment_id, a.title 
+            SELECT a.assignment_id, a.title, a.description 
             FROM Assignment AS a 
             JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
             WHERE ac.class = ?;

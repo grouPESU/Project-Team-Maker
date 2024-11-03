@@ -4,6 +4,27 @@ import { useNavigate, useLocation} from "react-router-dom";
 import styles from "./main.module.css"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { io } from "socket.io-client";
+import Profile from "./Profile"
+import Request from "./Request"
+import loginStyles from "./login.module.css"
+import Typewriter from 'typewriter-effect';
+import Marquee from "react-fast-marquee";
+function TypewriterComponent() {
+    return (
+        <div className={loginStyles.typewriterContainer}>
+        <Typewriter
+        options={{
+            strings: ['Fast', 'Easy', 'Now'],
+                autoStart: true,
+                loop: true,
+                delay: 25,        // Controls typing speed
+            deleteSpeed: 20,  // Controls delete speed
+            cursor: '|',      // Custom cursor character
+        }}
+        />
+        </div>
+    );
+}
 
 
 function useClickEffect() {
@@ -31,7 +52,7 @@ function useClickEffect() {
         };
     }, []); // Empty dependency array means this runs once on mount
 }
-function Nav({state,assignmentInfo}) {
+function Nav({state,assignmentInfo, addTeam}) {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
 
@@ -40,18 +61,19 @@ function Nav({state,assignmentInfo}) {
         navigate('/login');
     };
 
+    
     const students = state.columns.nameList.order;
-    console.log(assignmentInfo)
     return (
         <div className={styles.nav}>
         <div className={styles.titlecard}>
         <h1>{assignmentInfo?.assignmentTitle || 'No Assignment Selected'}</h1>
         {assignmentInfo?.assignmentDescription && (
-            <p className={styles.description}>{assignmentInfo.description}</p>
+            <p className={styles.description}>{assignmentInfo.assignmentDescription}</p>
         )}
         </div>
         <div className={styles.navControls}>
-        <button className={styles.button85} onClick={handleLogout}>Logout</button>
+        <Request />
+        <button className={styles.viewButton} onClick={addTeam}>Add Team</button>
         </div>
         <div className={styles.bruh}>
         <h1> Ungrouped Students </h1>
@@ -62,7 +84,7 @@ function Nav({state,assignmentInfo}) {
                 <Draggable key={studentName} draggableId={studentName} index={index}>
                 {(provided)=> (
                     <li ref={provided.innerRef} {...provided.dragHandleProps} {...provided.draggableProps}>
-                    <Member num={studentName} />
+                    <Member num={state.students[studentName]?.name} />
                     </li>
                 )}
                 </Draggable>
@@ -76,7 +98,7 @@ function Nav({state,assignmentInfo}) {
     );
 }
 
-function Team({index, teamId, state, onDeleteTeam}) {
+function Team({index, teamId, state, onDeleteTeam, pendingRequests}) {
     const handleDelete = async () => {
         try {
             const response = await fetch(`http://localhost:3001/api/teams/${teamId}`, {
@@ -93,12 +115,9 @@ function Team({index, teamId, state, onDeleteTeam}) {
             alert('Failed to delete team');
         }
     };
-
+    console.log(pendingRequests);
     return (
         <div className={styles.teamContainer}>
-        <div className={styles.teamIdOverlay}>
-        ID: {teamId}
-        </div>
 
         <button 
         className={styles.deleteTeamButton}
@@ -110,6 +129,11 @@ function Team({index, teamId, state, onDeleteTeam}) {
         <Droppable droppableId={teamId}>
         {(provided) => (
             <ul className={styles.team} ref={provided.innerRef} {...provided.droppableProps}>
+        <div className={styles.teamIdOverlay}>
+            <div className={styles.iD}>
+        ID: {teamId}
+            </div>
+        </div>
             {state.columns[teamId]?.order.length > 0 ? (
                 // Use Set to ensure unique values in the order array
                 state.columns[teamId].order.map((studentName, index) => (
@@ -120,7 +144,14 @@ function Team({index, teamId, state, onDeleteTeam}) {
                         {...provided.dragHandleProps}
                         {...provided.draggableProps}
                         >
-                        <Member num={studentName} />
+                        <Member 
+                        num={studentName}
+                        isPending={pendingRequests.some(req => 
+                            req.student_id === studentName && 
+                            req.team_id === teamId && 
+                            req.status === 'pending'
+                        )}
+                        />
                         </li>
                     )}
                     </Draggable>
@@ -136,7 +167,7 @@ function Team({index, teamId, state, onDeleteTeam}) {
     );
 }
 
-function View({state, setState, teamMembers, assignmentInfo}) {
+function View({state, setState, teamMembers, assignmentInfo,pendingRequests}) {
     const [teams, setTeams] = useState([]);
     const { user } = useAuth();
 
@@ -173,60 +204,14 @@ function View({state, setState, teamMembers, assignmentInfo}) {
         setTeams(existingTeamIds);
     }, [teamMembers]);
 
-    const addTeam = async () => {
-        try {
-            const response = await fetch('http://localhost:3001/api/teams', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    creatorId: user.id,
-                    assignmentId: assignmentInfo.assignmentId
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                if (data.alreadyInTeam) {
-                    alert(data.error);
-                    return;
-                }
-                throw new Error(data.error || 'Failed to create team');
-            }
-
-            const newTeamId = data.teamId;
-            setTeams(prevTeams => [...prevTeams, newTeamId]);
-
-            // Update state to reflect new team
-            setState(prevState => {
-                const newState = {
-                    ...prevState,
-                    columns: {
-                        ...prevState.columns,
-                        [newTeamId]: { 
-                            title: newTeamId, 
-                            order: [user.id] 
-                        }
-                    }
-                };
-
-                // Remove creator from nameList
-                newState.columns.nameList.order = newState.columns.nameList.order
-                    .filter(id => id !== user.id);
-
-                return newState;
-            });
-        } catch (error) {
-            console.error('Error creating team:', error);
-            alert('An error occurred while creating the team');
-        }
-    };
     return (
         <div className={styles.groupview}>
         <div className={styles.groupnav}>
-        <button className={styles.button85} onClick={addTeam}>Add Team</button>
+        <div className={styles.coolText}>
+        <h1 className={loginStyles.logo}>GrouPES</h1>
+
+        </div>
+        <Profile />
         </div>
         <div className={styles.grouplist}>
         {teams.map((teamId) => (
@@ -235,6 +220,8 @@ function View({state, setState, teamMembers, assignmentInfo}) {
             teamId={teamId} 
             state={state}
             onDeleteTeam={handleDeleteTeam}
+            pendingRequests={pendingRequests}
+
             />
         ))}
         </div>
@@ -243,13 +230,15 @@ function View({state, setState, teamMembers, assignmentInfo}) {
 }
 
 
-function Member({num}) {
+function Member({num, isPending}) {
     return (
-        <div className={styles.member}>
+        <div className={`${styles.member} ${isPending ? styles.pendingRequest : ''}`}>
+
         {num}
         </div>
     )
 }export default function Main() {
+    const [teams, setTeams] = useState([]);
     const [state, setState] = useState({
         students: {},
         columns: {
@@ -257,16 +246,53 @@ function Member({num}) {
         }
     });
     const [teamMembers, setTeamMembers] = useState({});
+    const [pendingRequests, setPendingRequests] = useState([]);
     const [socket, setSocket] = useState(null);
     const { user } = useAuth();
     const location = useLocation();
     const assignmentInfo = location.state || {};
+    useEffect(() => {
+        const fetchPendingRequests = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/api/joinrequests');
+                const data = await response.json();
+                setPendingRequests(data);
+            } catch (error) {
+                console.error('Error fetching pending requests:', error);
+            }
+        };
 
+        fetchPendingRequests();
+    }, []);
     useEffect(() => {
         const newSocket = io('http://localhost:3001');
         setSocket(newSocket);
         return () => newSocket.disconnect();
     }, []);
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on('requestUpdate', (update) => {
+            switch (update.type) {
+                case 'newRequest':
+                    setPendingRequests(prev => [...prev, update.request]);
+                    break;
+                case 'requestAccepted':
+                case 'requestRejected':
+                    setPendingRequests(prev => 
+                        prev.filter(req => 
+                            !(req.student_id === update.studentId && 
+                                req.team_id === update.teamId)
+                        )
+                    );
+                    break;
+            }
+        });
+
+        return () => {
+            socket.off('requestUpdate');
+        };
+    }, [socket]);
 
     useEffect(() => {
         if (!socket) return;
@@ -393,15 +419,6 @@ function Member({num}) {
     }, []);
     console.log(teamMembers)
     const onDragEnd = async (result) => {
-        //const { destination, source, draggableId } = result;
-        //if (!destination) return;
-        //
-            //if (
-                //    destination.droppableId === source.droppableId &&
-                //    destination.index === source.index
-                //) {
-                //    return;
-                //}
         const { destination, source, draggableId } = result;
         if (!destination) return;
 
@@ -486,6 +503,21 @@ function Member({num}) {
                         socketId: socket.id // Send socket ID to identify initiator
                     }),
                 });
+                await fetch('http://localhost:3001/api/joinrequests', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        studentId: user.id,
+                        teamId: destination.droppableId
+                    }),
+                });
+                const memberElem = document.querySelector(`[data-rbd-draggable-id="${draggableId}"]`);
+                console.log(memberElem.firstChild)
+                if (memberElem) {
+                    memberElem.firstChild.classList.add(styles.pendingRequest);
+                }
             } 
             // Moving from a team to nameList
             else if (source.droppableId !== 'nameList' && destination.droppableId === 'nameList') {
@@ -506,11 +538,140 @@ function Member({num}) {
         }
     };
     useClickEffect();
+
+    const handleTeamCreated = (update) => {
+        const { teamId, team, creatorId } = update;
+
+        setTeams(prevTeams => {
+            // Only add if it's not already in the array
+            if (!prevTeams.includes(teamId)) {
+                return [...prevTeams, teamId];
+            }
+            return prevTeams;
+        });
+
+        setState(prevState => {
+            // If the team is already in state, don't add it again
+            if (prevState.columns[teamId]) {
+                return prevState;
+            }
+
+            const newState = {
+                ...prevState,
+                columns: {
+                    ...prevState.columns,
+                    [teamId]: {
+                        title: teamId,
+                        order: [creatorId]
+                    }
+                }
+            };
+
+            // Only remove from nameList if it's the current user's team
+            if (creatorId === user.id) {
+                newState.columns.nameList.order = 
+                    newState.columns.nameList.order.filter(id => id !== creatorId);
+            }
+
+            return newState;
+        });
+    };
+
+    const addTeam = async () => {
+        try {
+            const response = await fetch('http://localhost:3001/api/teams', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    creatorId: user.id,
+                    assignmentId: assignmentInfo.assignmentId
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (data.alreadyInTeam) {
+                    alert(data.error);
+                    return;
+                }
+                throw new Error(data.error || 'Failed to create team');
+            }
+
+            const newTeamId = data.teamId;
+
+            // Immediately update the state with the new team
+            setState(prevState => {
+                // Only update if the team doesn't already exist
+                if (prevState.columns[newTeamId]) {
+                    return prevState;
+                }
+
+                return {
+                    ...prevState,
+                    columns: {
+                        ...prevState.columns,
+                        [newTeamId]: {
+                            title: newTeamId,
+                            order: [user.id],
+                            memberRoles: {
+                                [user.id]: 'leader'
+                            }
+                        },
+                        nameList: {
+                            ...prevState.columns.nameList,
+                            order: prevState.columns.nameList.order.filter(id => id !== user.id)
+                        }
+                    }
+                };
+            });
+
+            // Update teamMembers state as well
+            setTeamMembers(prev => ({
+                ...prev,
+                [newTeamId]: {
+                    title: newTeamId,
+                    order: [user.id],
+                    memberRoles: {
+                        [user.id]: 'leader'
+                    }
+                }
+            }));
+
+            // Only emit if the state update was successful
+            if (socket) {
+                socket.emit('teamUpdate', {
+                    type: 'teamCreated',
+                    teamId: newTeamId,
+                    team: {
+                        title: newTeamId,
+                        order: [user.id],
+                        memberRoles: {
+                            [user.id]: 'leader'
+                        }
+                    },
+                    creatorId: user.id
+                });
+            }
+
+        } catch (error) {
+            console.error('Error creating team:', error);
+            alert('An error occurred while creating the team');
+        }
+    };
     return (
         <DragDropContext onDragEnd={onDragEnd}>
         <div className= {styles.mainbody} >
-        <Nav state={state} assignmentInfo={assignmentInfo}/>
-        <View state={state} setState={setState} teamMembers={teamMembers} assignmentInfo={assignmentInfo}/>
+        <Nav state={state} assignmentInfo={assignmentInfo} addTeam={addTeam}/>
+        <View 
+        state={state} 
+        setState={setState} 
+        teamMembers={teamMembers} 
+        assignmentInfo={assignmentInfo}
+        pendingRequests={pendingRequests}
+        />
         </div>
         </DragDropContext>
     );

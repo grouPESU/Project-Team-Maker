@@ -15,7 +15,7 @@ const connection = mysql.createConnection({
 });
 
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow React app on port 3001
+  origin: 'http://localhost:5173', 
   credentials: true,
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Accept']

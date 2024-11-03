@@ -69,6 +69,7 @@ const StudentAssignmentsList = () => {
                 assignmentId: assignment.assignment_id
             } 
         });
+        console.log(assignment)
     };
 
     if (loading) {

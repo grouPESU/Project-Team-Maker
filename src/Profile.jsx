@@ -19,7 +19,7 @@ const ProfileBox = () => {
       <div className={styles.profile}>
         <User/> {user.id}
       <br/>
-        <button onClick={handleLogout} className={styles.tabButton}>
+        <button onClick={handleLogout} className={styles.deleteButton}>
             LogOut
         </button>
       </div>

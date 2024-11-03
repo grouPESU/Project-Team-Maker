@@ -37,14 +37,22 @@ function generateTeamId() {
     return 'T' + Date.now().toString().slice(-8) + Math.random().toString(36).slice(-4);
 }
 
+function generateReqId() {
+    return 'R' + Date.now().toString().slice(-8) + Math.random().toString(36).slice(-4);
+}
+
 io.on('connection', (socket) => {
     console.log('Client connected');
+
+    socket.on('requestUpdate', (update) => {
+        // Broadcast the request update to all clients
+        io.emit('requestUpdate', update);
+    });
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });
 });
-
 async function fetchDataFromDB(assignmentId) {
     const connection = await mysql.createConnection(dbConfig);
     try {
@@ -319,6 +327,147 @@ app.get('/api/students/:assignmentId', async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+// Add these endpoints to your existing server.js
+
+// Get all pending join requests for a team leader
+app.get('/api/joinrequests', async (req, res) => {
+    const connection = await mysql.createConnection(dbConfig);
+    try {
+        const [rows] = await connection.execute(`
+            SELECT jr.request_id, jr.student_id, jr.team_id, jr.status,
+                   s.firstname as student_name
+            FROM JoinRequest jr
+            JOIN Student s ON jr.student_id = s.student_id
+            WHERE jr.status = 'pending'
+            ORDER BY jr.request_id DESC
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching join requests:', error);
+        res.status(500).json({ error: 'Failed to fetch join requests' });
+    } finally {
+        await connection.end();
+    }
+});
+
+// Create a new join request
+app.post('/api/joinrequests', async (req, res) => {
+    const { studentId, teamId } = req.body;
+    const reqId = generateReqId();
+    const connection = await mysql.createConnection(dbConfig);
+    
+    try {
+        await connection.beginTransaction();
+        
+        // Check if there's already a pending request
+        const [existingRequests] = await connection.execute(
+            'SELECT * FROM JoinRequest WHERE student_id = ? AND team_id = ? AND status = "pending"',
+            [studentId, teamId]
+        );
+        
+        if (existingRequests.length > 0) {
+            return res.status(400).json({ error: 'Request already pending' });
+        }
+        
+        // Create new request
+        await connection.execute(
+            'INSERT INTO JoinRequest (student_id, team_id, request_id, status) VALUES (?, ?, ?, "pending")',
+            [studentId, teamId, reqId]
+        );
+        
+        await connection.commit();
+        
+        // Get the student name for the notification
+        const [studentRows] = await connection.execute(
+            'SELECT firstname as student_name FROM Student WHERE student_id = ?',
+            [studentId]
+        );
+        
+        // Emit socket event with complete request information
+        io.emit('requestUpdate', {
+            type: 'newRequest',
+            request: {
+                request_id: reqId,
+                student_id: studentId,
+                team_id: teamId,
+                status: 'pending',
+                student_name: studentRows[0]?.student_name
+            }
+        });
+        
+        res.json({ message: 'Join request created successfully' });
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error creating join request:', error);
+        res.status(500).json({ error: 'Failed to create join request' });
+    } finally {
+        await connection.end();
+    }
+});
+// Update join request status
+app.put('/api/joinrequests/:requestId', async (req, res) => {
+    const { requestId } = req.params;
+    const { status } = req.body;
+    const connection = await mysql.createConnection(dbConfig);
+    
+    try {
+        await connection.beginTransaction();
+        
+        // Get request details before updating
+        const [request] = await connection.execute(
+            'SELECT * FROM JoinRequest WHERE request_id = ?',
+            [requestId]
+        );
+        
+        if (request.length === 0) {
+            return res.status(404).json({ error: 'Request not found' });
+        }
+        
+        // Update request status
+        await connection.execute(
+            'UPDATE JoinRequest SET status = ? WHERE request_id = ?',
+            [status, requestId]
+        );
+        
+        if (status === 'accepted') {
+            // Add member to team with member role
+            //await connection.execute(
+            //    'INSERT INTO Team_member (team_id, team_member_id, role) VALUES (?, ?, "member")',
+            //    [request[0].team_id, request[0].student_id]
+            //);
+            
+            // Notify all clients about the accepted request
+            io.emit('requestUpdate', {
+                type: 'requestAccepted',
+                studentId: request[0].student_id,
+                teamId: request[0].team_id
+            });
+        } else if (status === 'rejected') {
+            // Notify all clients about the rejected request
+            await connection.execute(
+                'DELETE FROM Team_member WHERE team_member_id= ?',
+                [request[0].student_id]
+            );
+            io.emit('requestUpdate', {
+                type: 'requestRejected',
+                studentId: request[0].student_id,
+                teamId: request[0].team_id
+            });
+        }
+        
+        await connection.commit();
+        res.json({ message: 'Request updated successfully' });
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error updating join request:', error);
+        res.status(500).json({ error: 'Failed to update join request' });
+    } finally {
+        await connection.end();
+    }
+});
+
+
 server.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
