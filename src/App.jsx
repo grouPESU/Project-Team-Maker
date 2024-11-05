@@ -7,7 +7,7 @@ import Main from './Main';
 import Admin from './admin';
 import RegistrationForm from './Register';
 import Assignment from './Teacher';
-import Assn from './Assn';
+import Assn from './newAss';
 import TeacherGroup from './TeacherGroup'
 
 function App() {

@@ -94,7 +94,7 @@ export default function LoginForm() {
     return (
         <div className={loginStyles.loginContainer}>
         <div className={loginStyles.leftSection}>
-        <h1 className={loginStyles.logo}>GrouPES</h1>
+        <h1 className={loginStyles.logo}>grouPES</h1>
         <TypewriterComponent />
         </div>
 

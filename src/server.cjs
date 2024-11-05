@@ -148,7 +148,9 @@ app.post('/reset', (req, res) => {
       'DELETE FROM StudentEmail',
       'DELETE FROM TeacherEmail',
       'DELETE FROM Student',
-      'DELETE FROM Teacher'
+      'DELETE FROM Teacher',
+      'DELETE FROM Assignment',
+      'DELETE FROM AssignmentClass'  
     ];
 
     const executeQueries = (queries, index) => {

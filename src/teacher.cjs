@@ -74,8 +74,8 @@ app.put('/updateAssignment/:id', (req, res) => {
   const { id } = req.params;
   const { title, description, min_team_size, max_team_size, deadline, classes } = req.body;
 
-  const updateAssignmentSql = 'UPDATE Assignment SET title = ?, description = ?, min_team_size = ?, max_team_size = ?, deadline = ? WHERE assignment_id = ?';
-  db.query(updateAssignmentSql, [title, description, min_team_size, max_team_size, deadline, id], (err, result) => {
+  const updateAssignmentSql = 'UPDATE Assignment SET title = ?, description = ?, deadline = ? WHERE assignment_id = ?';
+  db.query(updateAssignmentSql, [title, description, deadline, id], (err, result) => {
     if (err) {
       console.error('Error updating assignment:', err);
       res.status(500).json({ error: 'Failed to update assignment' });
