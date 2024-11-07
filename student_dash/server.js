@@ -84,7 +84,7 @@ app.get('/student/assignments/:assignmentId', async (req, res) => {
             JOIN Teacher AS t ON a.teacher_id = t.teacher_id
             WHERE a.assignment_id = ? AND ac.class = ?`;
 
-        const [assignment] = await db.execute(query, [assignmentId, 'M']); // 'M' is hardcoded for now
+        const [assignment] = await db.execute(query, [assignmentId, 'M']); 
 
         if (!assignment.length) {
             return res.status(404).json({ 
