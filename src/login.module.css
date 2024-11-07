@@ -10,6 +10,14 @@ body {
     background-color: var(--background);
 }
 
+.loginForm {
+    overflow: clip;
+}
+
+.loginLink {
+
+}
+
 .loginContainer {
     min-height: 100vh;
     display: flex;
@@ -130,7 +138,7 @@ h2 {
 label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #333;
+    color: var(--color-bright-black);
     font-size: 0.875rem;
 }
 
@@ -142,6 +150,7 @@ input, select {
     font-size: 1rem;
     margin-bottom: 0.5rem;
     background: rgba(0,0,0,0);
+    border: 1px solid var(--color-bright-white)
 }
 
 input:focus, select:focus {
@@ -152,7 +161,7 @@ input:focus, select:focus {
 .submitButton {
     width: 100%;
     padding: 0.75rem;
-    background-color: #4a90e2;
+    background-color: var(--color-bright-blue);
     color: white;
     border: none;
     border-radius: 4px;
@@ -162,7 +171,7 @@ input:focus, select:focus {
 }
 
 .submitButton:hover {
-    background-color: #357abd;
+    background-color: var(--color-bright-blue);
 }
 
 .submitButton:disabled {

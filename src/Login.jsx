@@ -103,7 +103,7 @@ export default function LoginForm() {
         <h2>Sign In to GrouPES</h2>
         <p className={loginStyles.subtitle}>Enter your credentials to access your account</p>
 
-        <form onSubmit={handleSubmit}>
+        <form className={loginStyles.loginForm} onSubmit={handleSubmit}>
         {/* Keep all your existing form elements */}
         <div className={loginStyles.formGroup}>
         <label htmlFor="role">Role</label>

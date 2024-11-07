@@ -75,6 +75,19 @@ async function fetchDataFromDB(assignmentId) {
         await connection.end();
     }
 }
+async function fetchAllDataFromDB() {
+    const connection = await mysql.createConnection(dbConfig);
+    try {
+        const [rows] = await connection.execute(
+            `SELECT student_id, firstname, class 
+            FROM Student 
+            `
+        );
+        return rows;
+    } finally {
+        await connection.end();
+    }
+}
 
 // Add member to team
 ;app.post('/api/teams/:teamId/members', async (req, res) => {
@@ -315,6 +328,17 @@ function transformData(rows) {
         },
     };
 }
+
+app.get('/api/students/getall' , async (req, res) => {
+    try {
+        const rows = await fetchAllDataFromDB();
+        const trans = transformData(rows);
+        res.json(trans);
+    } catch (e) {
+        console.log("FetchAll failed: ", e);
+        res.status(500).json({error: 'Internal Server error'})
+    }
+});
 
 app.get('/api/students/:assignmentId', async (req, res) => {
     const { assignmentId } = req.params;

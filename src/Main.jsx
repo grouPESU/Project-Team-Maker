@@ -8,7 +8,6 @@ import Profile from "./Profile"
 import Request from "./Request"
 import loginStyles from "./login.module.css"
 import Typewriter from 'typewriter-effect';
-import Marquee from "react-fast-marquee";
 function TypewriterComponent() {
     return (
         <div className={loginStyles.typewriterContainer}>
@@ -60,7 +59,9 @@ function Nav({state,assignmentInfo, addTeam}) {
         logout();
         navigate('/login');
     };
-
+    const isUserLeader = Object.values(state.columns).some(column => 
+        column.memberRoles && column.memberRoles[user.id] === 'leader'
+    );
     
     const students = state.columns.nameList.order;
     return (
@@ -72,7 +73,7 @@ function Nav({state,assignmentInfo, addTeam}) {
         )}
         </div>
         <div className={styles.navControls}>
-        <Request />
+        {isUserLeader && <Request />}
         <button className={styles.viewButton} onClick={addTeam}>Add Team</button>
         </div>
         <div className={styles.bruh}>
@@ -98,7 +99,7 @@ function Nav({state,assignmentInfo, addTeam}) {
     );
 }
 
-function Team({index, teamId, state, onDeleteTeam, pendingRequests}) {
+function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests}) {
     const handleDelete = async () => {
         try {
             const response = await fetch(`http://localhost:3001/api/teams/${teamId}`, {
@@ -115,7 +116,6 @@ function Team({index, teamId, state, onDeleteTeam, pendingRequests}) {
             alert('Failed to delete team');
         }
     };
-    console.log(pendingRequests);
     return (
         <div className={styles.teamContainer}>
 
@@ -145,7 +145,7 @@ function Team({index, teamId, state, onDeleteTeam, pendingRequests}) {
                         {...provided.draggableProps}
                         >
                         <Member 
-                        num={studentName}
+                        num={allStudents.students[studentName]?.name}
                         isPending={pendingRequests.some(req => 
                             req.student_id === studentName && 
                             req.team_id === teamId && 
@@ -167,16 +167,15 @@ function Team({index, teamId, state, onDeleteTeam, pendingRequests}) {
     );
 }
 
-function View({state, setState, teamMembers, assignmentInfo,pendingRequests}) {
+function View({state, setState, teamMembers, allStudents, assignmentInfo,pendingRequests, socket}) {
     const [teams, setTeams] = useState([]);
     const { user } = useAuth();
-
     const handleDeleteTeam = (teamId) => {
         // Update teams state
         setTeams(prevTeams => prevTeams.filter(id => id !== teamId));
 
         // Update main state
-        setState(prevState => {
+        setState((prevState) => {
             const newState = {
                 ...prevState,
                 columns: {
@@ -191,10 +190,18 @@ function View({state, setState, teamMembers, assignmentInfo,pendingRequests}) {
                     }
                 }
             };
+            if (socket) {
+                socket.emit('teamUpdate', {
+                    type: 'teamDeleted',
+                    teamId,
+                    teamMembers: prevState.columns[teamId]?.order || []
+                });
+            }
             // Remove the team from columns
             delete newState.columns[teamId];
             return newState;
         });
+
     };
     // Use existing teams from backend
     useEffect(() => {
@@ -208,7 +215,7 @@ function View({state, setState, teamMembers, assignmentInfo,pendingRequests}) {
         <div className={styles.groupview}>
         <div className={styles.groupnav}>
         <div className={styles.coolText}>
-        <h1 className={loginStyles.logo}>GrouPES</h1>
+        <h1 className={loginStyles.logo}>grouPES</h1>
 
         </div>
         <Profile />
@@ -221,6 +228,7 @@ function View({state, setState, teamMembers, assignmentInfo,pendingRequests}) {
             state={state}
             onDeleteTeam={handleDeleteTeam}
             pendingRequests={pendingRequests}
+            allStudents={allStudents}
 
             />
         ))}
@@ -245,6 +253,7 @@ function Member({num, isPending}) {
             nameList: { title: "nameList", order: [] }
         }
     });
+    const [allStudents, setAllStudents] = useState({});
     const [teamMembers, setTeamMembers] = useState({});
     const [pendingRequests, setPendingRequests] = useState([]);
     const [socket, setSocket] = useState(null);
@@ -366,15 +375,13 @@ function Member({num, isPending}) {
                     setState(prevState => {
                         const newState = { ...prevState };
                         // Move team members back to nameList
-                        if (newState.columns[update.teamId]) {
-                            newState.columns.nameList.order = [
-                                ...new Set([
-                                    ...newState.columns.nameList.order,
-                                    ...(update.teamMembers || [])
-                                ])
-                            ];
-                            delete newState.columns[update.teamId];
-                        }
+                        newState.columns.nameList.order = [
+                            ...new Set([
+                                ...newState.columns.nameList.order,
+                                ...update.teamMembers
+                            ])
+                        ];
+                        delete newState.columns[update.teamId];
                         return newState;
                     });
                     setTeamMembers(prev => {
@@ -396,13 +403,16 @@ function Member({num, isPending}) {
                 // Fetch teams first
                 const teamResponse = await fetch(`http://localhost:3001/api/teamsync/${assignmentInfo.assignmentId}`);
                 const teamData = await teamResponse.json();
-                console.log(teamData)
                 setTeamMembers(teamData);
 
                 // Then fetch students
                 const studentsResponse = await fetch(`http://localhost:3001/api/students/${assignmentInfo.assignmentId}`);
 
                 const studentsData = await studentsResponse.json();
+
+                const allResponse = await fetch(`http://localhost:3001/api/students/getall`)
+                const allData = await allResponse.json();
+                setAllStudents(allData);
                 setState(prevState => ({
                     ...studentsData,
                     columns: {
@@ -417,7 +427,6 @@ function Member({num, isPending}) {
 
         fetchTeamsAndMembers();
     }, []);
-    console.log(teamMembers)
     const onDragEnd = async (result) => {
         const { destination, source, draggableId } = result;
         if (!destination) return;
@@ -437,10 +446,8 @@ function Member({num, isPending}) {
             // Check if user is a leader or dragging their own name
             const teamInfo = state.columns[teamId];
             const userRole = teamInfo.memberRoles?.[user.id] || 'member';
-            console.log(teamInfo.memberRoles)
             const isDraggingOwnName = draggableId === user.id;
             const isLeader = userRole === 'leader';
-            console.log(isLeader)
 
             return isLeader || isDraggingOwnName;
         };
@@ -514,13 +521,23 @@ function Member({num, isPending}) {
                     }),
                 });
                 const memberElem = document.querySelector(`[data-rbd-draggable-id="${draggableId}"]`);
-                console.log(memberElem.firstChild)
                 if (memberElem) {
                     memberElem.firstChild.classList.add(styles.pendingRequest);
                 }
-            } 
+            }  
             // Moving from a team to nameList
             else if (source.droppableId !== 'nameList' && destination.droppableId === 'nameList') {
+                await fetch(`http://localhost:3001/api/teams/${source.droppableId}/members/${draggableId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        socketId: socket.id
+                    }),
+                });
+            }
+            else if (source.droppableId !== 'nameList' && destination.droppableId !== 'nameList') {
                 await fetch(`http://localhost:3001/api/teams/${source.droppableId}/members/${draggableId}`, {
                     method: 'DELETE',
                     headers: {
@@ -671,6 +688,8 @@ function Member({num, isPending}) {
         teamMembers={teamMembers} 
         assignmentInfo={assignmentInfo}
         pendingRequests={pendingRequests}
+        allStudents={allStudents}
+        socket={socket}
         />
         </div>
         </DragDropContext>

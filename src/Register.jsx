@@ -112,7 +112,7 @@ export default function RegistrationForm() {
     return (
         <div className={styles.loginContainer}>
         <div className={styles.leftSection}>
-        <h1 className={styles.logo}>GrouPES</h1>
+        <h1 className={styles.logo}>grouPES</h1>
         <TypewriterComponent />
         </div>
 
