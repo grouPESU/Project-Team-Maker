@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './admin.module.css'
+import "./admin.module.css"
 
 const App = () => {
   const [file, setFile] = useState(null);
@@ -94,23 +94,23 @@ const App = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+    <div className="c1">
+      <h1 className="c2">Admin Dashboard</h1>
       
       {/* File Upload Section */}
-      <div className="mb-8 p-4 border rounded">
-        <h2 className="text-xl font-semibold mb-4">Upload the 'Student.csv' or 'Teacher.csv' here</h2>
+      <div className="c3">
+        <h2 className="c4">Upload the 'Student.csv' or 'Teacher.csv' here</h2>
         <form onSubmit={handleUpload} className="mb-4">
           <input type="file" accept=".csv" onChange={handleFileChange} className="mb-2" />
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded mr-2">Upload</button>
+          <button type="submit" className="c5">Upload</button>
         </form>
-        <h2 className="text-xl font-semibold mb-4">Reconfigure Database, this action resets the DB</h2>
-        <button onClick={handleReset} className="bg-red-500 text-white px-4 py-2 rounded">Reset Database</button>
+        <h2 className="c4">Reconfigure Database, this action resets the DB</h2>
+        <button onClick={handleReset} className="c6">Reset Database</button>
       </div>
 
       {/* View Password Section */}
-      <div className="mb-8 p-4 border rounded">
-        <h2 className="text-xl font-semibold mb-4">View Password and Push Mail</h2>
+      <div className="c3">
+        <h2 className="c4">View Password and Push Mail</h2>
         <div className="space-y-4">
           <div>
             <select 
@@ -120,7 +120,7 @@ const App = () => {
                 setPassword('');
                 setMessage('');
               }}
-              className="border p-2 rounded mr-2"
+              className="c7"
             >
               <option value="Student">Student</option>
               <option value="Teacher">Teacher</option>
@@ -134,17 +134,17 @@ const App = () => {
                 setMessage('');
               }}
               placeholder={`Enter ${selectedTable} ID (PES${selectedTable === 'Teacher' ? '4' : '2'}...)`}
-              className="border p-2 rounded"
+              className="c9"
             />
           </div>
           <button 
             onClick={handleViewPassword}
-            className="bg-green-500 text-white px-4 py-2 rounded"
+            className="c8"
           >
             View Password
           </button>
           {password && (
-            <div className="mt-2 p-2 bg-green-100 border border-green-300 rounded">
+            <div className="c17">
               <strong>Password:</strong> {password}
             </div>
           )}
@@ -152,8 +152,8 @@ const App = () => {
       </div>
 
       {/* Update Password Section */}
-      <div className="mb-8 p-4 border rounded">
-        <h2 className="text-xl font-semibold mb-4">Update Password and Push Mail</h2>
+      <div className="c3">
+        <h2 className="c4">Update Password and Push Mail</h2>
         <div className="space-y-4">
           <div>
             <select 
@@ -162,7 +162,7 @@ const App = () => {
                 setUpdateTable(e.target.value);
                 setMessage('');
               }}
-              className="border p-2 rounded mr-2"
+              className="c7"
             >
               <option value="Student">Student</option>
               <option value="Teacher">Teacher</option>
@@ -175,7 +175,7 @@ const App = () => {
                 setMessage('');
               }}
               placeholder={`Enter ${updateTable} ID (PES${updateTable === 'Teacher' ? '4' : '2'}...)`}
-              className="border p-2 rounded"
+              className="c9"
             />
           </div>
           <input
@@ -183,19 +183,19 @@ const App = () => {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="New Password"
-            className="border p-2 rounded block w-full mb-2"
+            className="c10"
           />
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm New Password"
-            className="border p-2 rounded block w-full"
+            className="c11"
           />
         </div>
         <button 
             onClick={handleUpdatePassword}
-            className="bg-yellow-500 text-white px-4 py-2 rounded"
+            className="c12"
           >
             Update Password
           </button>
@@ -203,10 +203,10 @@ const App = () => {
 
       {/* Message Display */}
       {message && (
-        <div className={`p-4 border rounded ${
-          messageType === 'error' ? 'bg-red-100 border-red-300 text-red-700' : 
-          messageType === 'success' ? 'bg-green-100 border-green-300 text-green-700' : 
-          'bg-gray-100 border-gray-300'
+        <div className={`c13 ${
+          messageType === 'error' ? 'c14' : 
+          messageType === 'success' ? 'c15' : 
+          'c16'
         }`}>
           <p>{message}</p>
         </div>
