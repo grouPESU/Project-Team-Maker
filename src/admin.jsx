@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import "./admin.module.css"
+import adminStyles from "./admin.module.css"
 
 const App = () => {
   const [file, setFile] = useState(null);
@@ -94,24 +94,24 @@ const App = () => {
   };
 
   return (
-    <div className="c1">
-      <h1 className="c2">Admin Dashboard</h1>
+    <div className={adminStyles.c1}>
+      <h1 className={adminStyles.c2}>Admin Dashboard</h1>
       
       {/* File Upload Section */}
-      <div className="c3">
-        <h2 className="c4">Upload the 'Student.csv' or 'Teacher.csv' here</h2>
-        <form onSubmit={handleUpload} className="mb-4">
-          <input type="file" accept=".csv" onChange={handleFileChange} className="mb-2" />
-          <button type="submit" className="c5">Upload</button>
+      <div className={adminStyles.c3}>
+        <h2 className={adminStyles.c4}>Upload the 'Student.csv' or 'Teacher.csv' here</h2>
+        <form onSubmit={handleUpload} className={adminStyles.mb4}>
+          <input type="file" accept=".csv" onChange={handleFileChange} className={adminStyles.mb2} />
+          <button type="submit" className={adminStyles.c5}>Upload</button>
         </form>
-        <h2 className="c4">Reconfigure Database, this action resets the DB</h2>
-        <button onClick={handleReset} className="c6">Reset Database</button>
+        <h2 className={adminStyles.c4}>Reconfigure Database, this action resets the DB</h2>
+        <button onClick={handleReset} className={adminStyles.c6}>Reset Database</button>
       </div>
 
       {/* View Password Section */}
-      <div className="c3">
-        <h2 className="c4">View Password and Push Mail</h2>
-        <div className="space-y-4">
+      <div className={adminStyles.c3}>
+        <h2 className={adminStyles.c4}>View Password and Push Mail</h2>
+        <div className={adminStyles.spaceY4}>
           <div>
             <select 
               value={selectedTable}
@@ -120,7 +120,7 @@ const App = () => {
                 setPassword('');
                 setMessage('');
               }}
-              className="c7"
+              className={adminStyles.c7}
             >
               <option value="Student">Student</option>
               <option value="Teacher">Teacher</option>
@@ -134,17 +134,17 @@ const App = () => {
                 setMessage('');
               }}
               placeholder={`Enter ${selectedTable} ID (PES${selectedTable === 'Teacher' ? '4' : '2'}...)`}
-              className="c9"
+              className={adminStyles.c9}
             />
           </div>
           <button 
             onClick={handleViewPassword}
-            className="c8"
+            className={adminStyles.c8}
           >
             View Password
           </button>
           {password && (
-            <div className="c17">
+            <div className={adminStyles.c17}>
               <strong>Password:</strong> {password}
             </div>
           )}
@@ -152,9 +152,9 @@ const App = () => {
       </div>
 
       {/* Update Password Section */}
-      <div className="c3">
-        <h2 className="c4">Update Password and Push Mail</h2>
-        <div className="space-y-4">
+      <div className={adminStyles.c3}>
+        <h2 className={adminStyles.c4}>Update Password and Push Mail</h2>
+        <div className={adminStyles.spaceY4}>
           <div>
             <select 
               value={updateTable}
@@ -162,7 +162,7 @@ const App = () => {
                 setUpdateTable(e.target.value);
                 setMessage('');
               }}
-              className="c7"
+              className={adminStyles.c7}
             >
               <option value="Student">Student</option>
               <option value="Teacher">Teacher</option>
@@ -175,7 +175,7 @@ const App = () => {
                 setMessage('');
               }}
               placeholder={`Enter ${updateTable} ID (PES${updateTable === 'Teacher' ? '4' : '2'}...)`}
-              className="c9"
+              className={adminStyles.c9}
             />
           </div>
           <input
@@ -183,19 +183,19 @@ const App = () => {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="New Password"
-            className="c10"
+            className={adminStyles.c10}
           />
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm New Password"
-            className="c11"
+            className={adminStyles.c11}
           />
         </div>
         <button 
             onClick={handleUpdatePassword}
-            className="c12"
+            className={adminStyles.c12}
           >
             Update Password
           </button>
@@ -203,10 +203,10 @@ const App = () => {
 
       {/* Message Display */}
       {message && (
-        <div className={`c13 ${
-          messageType === 'error' ? 'c14' : 
-          messageType === 'success' ? 'c15' : 
-          'c16'
+        <div className={`${adminStyles.c13} ${
+          messageType === 'error' ? adminStyles.c14 : 
+          messageType === 'success' ? adminStyles.c15 : 
+          adminStyles.c16
         }`}>
           <p>{message}</p>
         </div>
