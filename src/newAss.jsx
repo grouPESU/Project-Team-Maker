@@ -184,9 +184,9 @@ const StudentAssignments = () => {
                     <div className="error-help">
                         <h3>Troubleshooting:</h3>
                         <ul>
-                            <li>Check if the backend server is running (port 3001)</li>
-                            <li>Verify MySQL connection</li>
-                            <li>Ensure database name is correct</li>
+                            <li>Looks like you've no assignments!</li>
+                            <li>Go enjoy life dear student</li>
+                            <li>The chances of you getting this opportunity again are really slim</li>
                         </ul>
                     </div>
                 </div>

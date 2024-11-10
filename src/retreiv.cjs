@@ -32,6 +32,18 @@ const dbConfig = {
     database: 'finalgroupes'
 };
 
+async function isStudentInAnyTeam(connection, studentId, assignmentId) {
+    const [teams] = await connection.execute(
+        `SELECT tm.team_id 
+         FROM Team_member tm
+         JOIN Team t ON tm.team_id = t.team_id
+         WHERE tm.team_member_id = ? AND t.assignment_id = ?`,
+        [studentId, assignmentId]
+    );
+    return teams.length > 0;
+}
+
+
 // Generate unique team ID
 function generateTeamId() {
     return 'T' + Date.now().toString().slice(-8) + Math.random().toString(36).slice(-4);
@@ -440,12 +452,23 @@ app.put('/api/joinrequests/:requestId', async (req, res) => {
         
         // Get request details before updating
         const [request] = await connection.execute(
-            'SELECT * FROM JoinRequest WHERE request_id = ?',
+            'SELECT jr.*, t.assignment_id FROM JoinRequest jr JOIN Team t ON jr.team_id = t.team_id WHERE jr.request_id = ?',
             [requestId]
         );
         
         if (request.length === 0) {
             return res.status(404).json({ error: 'Request not found' });
+        }
+
+        if (status === 'accepted') {
+            // Check if student is already in a team
+            const isInTeam = await isStudentInAnyTeam(connection, request[0].student_id, request[0].assignment_id);
+            if (isInTeam) {
+                await connection.rollback();
+                return res.status(400).json({ 
+                    error: 'Student is already a member of another team for this assignment'
+                });
+            }
         }
         
         // Update request status
@@ -456,23 +479,28 @@ app.put('/api/joinrequests/:requestId', async (req, res) => {
         
         if (status === 'accepted') {
             // Add member to team with member role
-            //await connection.execute(
-            //    'INSERT INTO Team_member (team_id, team_member_id, role) VALUES (?, ?, "member")',
-            //    [request[0].team_id, request[0].student_id]
-            //);
+            await connection.execute(
+                'INSERT INTO Team_member (team_id, team_member_id, role) VALUES (?, ?, "member")',
+                [request[0].team_id, request[0].student_id]
+            );
             
-            // Notify all clients about the accepted request
+            // Cancel all other pending requests and invites for this student
+            await connection.execute(
+                'UPDATE JoinRequest SET status = "rejected" WHERE student_id = ? AND request_id != ? AND status = "pending"',
+                [request[0].student_id, requestId]
+            );
+            
+            await connection.execute(
+                'UPDATE JoinInvitation SET status = "rejected" WHERE student_id = ? AND status = "pending"',
+                [request[0].student_id]
+            );
+            
             io.emit('requestUpdate', {
                 type: 'requestAccepted',
                 studentId: request[0].student_id,
                 teamId: request[0].team_id
             });
         } else if (status === 'rejected') {
-            // Notify all clients about the rejected request
-            await connection.execute(
-                'DELETE FROM Team_member WHERE team_member_id= ?',
-                [request[0].student_id]
-            );
             io.emit('requestUpdate', {
                 type: 'requestRejected',
                 studentId: request[0].student_id,
@@ -490,8 +518,174 @@ app.put('/api/joinrequests/:requestId', async (req, res) => {
         await connection.end();
     }
 });
+app.get('/api/invites', async (req, res) => {
+    const connection = await mysql.createConnection(dbConfig);
+    try {
+        const [rows] = await connection.execute(`
+            SELECT ji.invitation_id, ji.student_id, ji.team_id, ji.status,
+                   s.firstname as student_name
+            FROM JoinInvitation ji
+            JOIN Student s ON ji.student_id = s.student_id
+            WHERE ji.status = 'pending'
+            ORDER BY ji.invitation_id DESC
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching invites:', error);
+        res.status(500).json({ error: 'Failed to fetch invites' });
+    } finally {
+        await connection.end();
+    }
+});
 
+app.get('/api/invites/:studentId', async (req, res) => {
+    const { studentId } = req.params;
+    const connection = await mysql.createConnection(dbConfig);
+    try {
+        const [rows] = await connection.execute(`
+            SELECT ji.invitation_id, ji.student_id, ji.team_id, ji.status
+            FROM JoinInvitation ji
+            WHERE ji.student_id = ? AND ji.status = 'pending'
+            ORDER BY ji.invitation_id DESC
+        `, [studentId]);
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching invites:', error);
+        res.status(500).json({ error: 'Failed to fetch invites' });
+    } finally {
+        await connection.end();
+    }
+});
 
+app.post('/api/invites', async (req, res) => {
+    const { studentId, teamId } = req.body;
+    const inviteId = 'I' + Date.now().toString().slice(-8) + Math.random().toString(36).slice(-4);
+    const connection = await mysql.createConnection(dbConfig);
+    
+    try {
+        await connection.beginTransaction();
+        
+        // Check if there's already a pending invite
+        const [existingInvites] = await connection.execute(
+            'SELECT * FROM JoinInvitation WHERE student_id = ? AND team_id = ? AND status = "pending"',
+            [studentId, teamId]
+        );
+        
+        if (existingInvites.length > 0) {
+            return res.status(400).json({ error: 'Invite already pending' });
+        }
+        
+        // Create new invite
+        await connection.execute(
+            'INSERT INTO JoinInvitation (student_id, team_id, invitation_id, status) VALUES (?, ?, ?, "pending")',
+            [studentId, teamId, inviteId]
+        );
+        
+        await connection.commit();
+        
+        // Get the student name for the notification
+        const [studentRows] = await connection.execute(
+            'SELECT firstname as student_name FROM Student WHERE student_id = ?',
+            [studentId]
+        );
+        
+        // Emit socket event
+        io.emit('inviteUpdate', {
+            type: 'newInvite',
+            invite: {
+                invitation_id: inviteId,
+                student_id: studentId,
+                team_id: teamId,
+                status: 'pending',
+                student_name: studentRows[0]?.student_name
+            }
+        });
+        
+        res.json({ message: 'Invite created successfully' });
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error creating invite:', error);
+        res.status(500).json({ error: 'Failed to create invite' });
+    } finally {
+        await connection.end();
+    }
+});
+app.put('/api/invites/:inviteId', async (req, res) => {
+    const { inviteId } = req.params;
+    const { status } = req.body;
+    const connection = await mysql.createConnection(dbConfig);
+    
+    try {
+        await connection.beginTransaction();
+        
+        // Get invite details before updating
+        const [invite] = await connection.execute(
+            'SELECT ji.*, t.assignment_id FROM JoinInvitation ji JOIN Team t ON ji.team_id = t.team_id WHERE ji.invitation_id = ?',
+            [inviteId]
+        );
+        
+        if (invite.length === 0) {
+            return res.status(404).json({ error: 'Invite not found' });
+        }
+
+        if (status === 'accepted') {
+            // Check if student is already in a team
+            const isInTeam = await isStudentInAnyTeam(connection, invite[0].student_id, invite[0].assignment_id);
+            if (isInTeam) {
+                await connection.rollback();
+                return res.status(400).json({ 
+                    error: 'Student is already a member of another team for this assignment'
+                });
+            }
+        }
+        
+        // Update invite status
+        await connection.execute(
+            'UPDATE JoinInvitation SET status = ? WHERE invitation_id = ?',
+            [status, inviteId]
+        );
+        
+        if (status === 'accepted') {
+            // Add member to team
+            await connection.execute(
+                'INSERT INTO Team_member (team_id, team_member_id, role) VALUES (?, ?, "member")',
+                [invite[0].team_id, invite[0].student_id]
+            );
+            
+            // Cancel all other pending requests and invites for this student
+            await connection.execute(
+                'UPDATE JoinRequest SET status = "rejected" WHERE student_id = ? AND status = "pending"',
+                [invite[0].student_id]
+            );
+            
+            await connection.execute(
+                'UPDATE JoinInvitation SET status = "rejected" WHERE student_id = ? AND invitation_id != ? AND status = "pending"',
+                [invite[0].student_id, inviteId]
+            );
+            
+            io.emit('inviteUpdate', {
+                type: 'inviteAccepted',
+                studentId: invite[0].student_id,
+                teamId: invite[0].team_id
+            });
+        } else if (status === 'rejected') {
+            io.emit('inviteUpdate', {
+                type: 'inviteRejected',
+                studentId: invite[0].student_id,
+                teamId: invite[0].team_id
+            });
+        }
+        
+        await connection.commit();
+        res.json({ message: 'Invite updated successfully' });
+    } catch (error) {
+        await connection.rollback();
+        console.error('Error updating invite:', error);
+        res.status(500).json({ error: 'Failed to update invite' });
+    } finally {
+        await connection.end();
+    }
+});
 server.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

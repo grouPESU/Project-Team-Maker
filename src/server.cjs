@@ -13,8 +13,8 @@ const port = 3000;
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root', 
-  password: '25102004', 
-  database: 'dbms_project' 
+  password: '2289', 
+  database: 'finalgroupes' 
 });
 
 // Email transporter setup

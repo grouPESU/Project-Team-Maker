@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { io } from "socket.io-client";
 import Profile from "./Profile"
 import Request from "./Request"
+import Invite from "./Invite"
 import loginStyles from "./login.module.css"
 import Typewriter from 'typewriter-effect';
 function TypewriterComponent() {
@@ -64,6 +65,7 @@ function Nav({state,assignmentInfo, addTeam}) {
     );
     
     const students = state.columns.nameList.order;
+    console.log("am i a leader",isUserLeader)
     return (
         <div className={styles.nav}>
         <div className={styles.titlecard}>
@@ -73,7 +75,7 @@ function Nav({state,assignmentInfo, addTeam}) {
         )}
         </div>
         <div className={styles.navControls}>
-        {isUserLeader && <Request />}
+        {isUserLeader ? <Request /> : <Invite />}
         <button className={styles.viewButton} onClick={addTeam}>Add Team</button>
         </div>
         <div className={styles.bruh}>
@@ -99,7 +101,7 @@ function Nav({state,assignmentInfo, addTeam}) {
     );
 }
 
-function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests}) {
+function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests, pendingInvites}) {
     const handleDelete = async () => {
         try {
             const response = await fetch(`http://localhost:3001/api/teams/${teamId}`, {
@@ -151,6 +153,11 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests}
                             req.team_id === teamId && 
                             req.status === 'pending'
                         )}
+                        isPendingInvite={pendingInvites.some(inv => 
+                                    inv.student_id === studentName && 
+                                    inv.team_id === teamId && 
+                                    inv.status === 'pending'
+                        )}
                         />
                         </li>
                     )}
@@ -167,85 +174,116 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests}
     );
 }
 
-function View({state, setState, teamMembers, allStudents, assignmentInfo,pendingRequests, socket}) {
+function View({state, setState, teamMembers, allStudents, assignmentInfo, pendingRequests, pendingInvites, socket}) {
     const [teams, setTeams] = useState([]);
     const { user } = useAuth();
-    const handleDeleteTeam = (teamId) => {
-        // Update teams state
-        setTeams(prevTeams => prevTeams.filter(id => id !== teamId));
+    
+    const handleDeleteTeam = async (teamId) => {
+        try {
+            // Get team members from both state.columns and teamMembers
+            const teamMembersToMove = [
+                ...(state.columns[teamId]?.order || []),
+                ...(teamMembers[teamId]?.order || [])
+            ];
+            console.log("breh", teamMembersToMove)
 
-        // Update main state
-        setState((prevState) => {
-            const newState = {
-                ...prevState,
-                columns: {
-                    ...prevState.columns,
-                    nameList: {
-                        ...prevState.columns.nameList,
-                        order: [
-                            ...prevState.columns.nameList.order,
-                            // Add team members back to nameList
-                            ...(prevState.columns[teamId]?.order || [])
-                        ]
+            // Remove duplicates
+            const uniqueTeamMembers = [...new Set(teamMembersToMove)];
+            
+            const response = await fetch(`http://localhost:3001/api/teams/${teamId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete team');
+            }
+
+            // Update teams state
+            setTeams(prevTeams => prevTeams.filter(id => id !== teamId));
+
+            // Update main state
+            setState(prevState => {
+                // Create new nameList order with unique values
+                const newNameListOrder = [...new Set([
+                    ...prevState.columns.nameList.order,
+                    ...uniqueTeamMembers
+                ])];
+
+                // Create new state object
+                const newState = {
+                    ...prevState,
+                    columns: {
+                        ...prevState.columns,
+                        nameList: {
+                            ...prevState.columns.nameList,
+                            order: newNameListOrder
+                        }
                     }
-                }
-            };
+                };
+
+                // Remove the team from columns
+                delete newState.columns[teamId];
+
+                return newState;
+            });
+
+            // Emit socket event after successful deletion
             if (socket) {
                 socket.emit('teamUpdate', {
                     type: 'teamDeleted',
                     teamId,
-                    teamMembers: prevState.columns[teamId]?.order || []
+                    teamMembers: uniqueTeamMembers
                 });
             }
-            // Remove the team from columns
-            delete newState.columns[teamId];
-            return newState;
-        });
 
+        } catch (error) {
+            console.error('Error deleting team:', error);
+            alert('Failed to delete team');
+        }
     };
+
     // Use existing teams from backend
     useEffect(() => {
-        // This assumes the existing useEffect in Main component
-        // is populating teamMembers with backend data
         const existingTeamIds = Object.keys(teamMembers);
         setTeams(existingTeamIds);
     }, [teamMembers]);
 
     return (
         <div className={styles.groupview}>
-        <div className={styles.groupnav}>
-        <div className={styles.coolText}>
-        <h1 className={loginStyles.logo}>grouPES</h1>
-
-        </div>
-        <Profile />
-        </div>
-        <div className={styles.grouplist}>
-        {teams.map((teamId) => (
-            <Team 
-            key={teamId} 
-            teamId={teamId} 
-            state={state}
-            onDeleteTeam={handleDeleteTeam}
-            pendingRequests={pendingRequests}
-            allStudents={allStudents}
-
-            />
-        ))}
-        </div>
+            <div className={styles.groupnav}>
+                <div className={styles.coolText}>
+                    <h1 className={loginStyles.logo}>grouPES</h1>
+                </div>
+                <Profile />
+            </div>
+            <div className={styles.grouplist}>
+                {teams.map((teamId) => (
+                    <Team 
+                        key={teamId} 
+                        teamId={teamId} 
+                        state={state}
+                        onDeleteTeam={handleDeleteTeam}
+                        pendingRequests={pendingRequests}
+                        pendingInvites={pendingInvites}
+                        allStudents={allStudents}
+                    />
+                ))}
+            </div>
         </div>
     );
 }
 
 
-function Member({num, isPending}) {
+function Member({num, isPending, isPendingInvite}) {
     return (
-        <div className={`${styles.member} ${isPending ? styles.pendingRequest : ''}`}>
-
+        <div className={`${styles.member} 
+            ${isPending ? styles.pendingRequest : ''} 
+            ${isPendingInvite ? styles.pendingRequest : ''}`}>
         {num}
         </div>
     )
-}export default function Main() {
+}
+export default function Main() {
     const [teams, setTeams] = useState([]);
     const [state, setState] = useState({
         students: {},
@@ -255,11 +293,26 @@ function Member({num, isPending}) {
     });
     const [allStudents, setAllStudents] = useState({});
     const [teamMembers, setTeamMembers] = useState({});
+    const [pendingInvites, setPendingInvites] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
     const [socket, setSocket] = useState(null);
     const { user } = useAuth();
     const location = useLocation();
     const assignmentInfo = location.state || {};
+    useEffect(() => {
+        const fetchPendingInvites = async () => {
+            try {
+                const response = await fetch('http://localhost:3001/api/invites');
+                const data = await response.json();
+                setPendingInvites(data);
+            } catch (error) {
+                console.error('Error fetching pending invites:', error);
+            }
+        };
+
+        fetchPendingInvites();
+    }, []);
+    console.log(pendingInvites)
     useEffect(() => {
         const fetchPendingRequests = async () => {
             try {
@@ -273,6 +326,30 @@ function Member({num, isPending}) {
 
         fetchPendingRequests();
     }, []);
+    useEffect(() => {
+        if (!socket) return;
+
+        socket.on('inviteUpdate', (update) => {
+            switch (update.type) {
+                case 'newInvite':
+                    setPendingInvites(prev => [...prev, update.invite]);
+                    break;
+                case 'inviteAccepted':
+                case 'inviteRejected':
+                    setPendingInvites(prev => 
+                        prev.filter(inv => 
+                            !(inv.student_id === update.studentId && 
+                                inv.team_id === update.teamId)
+                        )
+                    );
+                    break;
+            }
+        });
+
+        return () => {
+            socket.off('inviteUpdate');
+        };
+    }, [socket]);
     useEffect(() => {
         const newSocket = io('http://localhost:3001');
         setSocket(newSocket);
@@ -440,25 +517,19 @@ function Member({num, isPending}) {
 
         // Check drag permissions
         const checkDragPermission = (teamId) => {
-            // If dragging within nameList, always allowed
             if (teamId === 'nameList') return true;
-
-            // Check if user is a leader or dragging their own name
             const teamInfo = state.columns[teamId];
             const userRole = teamInfo.memberRoles?.[user.id] || 'member';
             const isDraggingOwnName = draggableId === user.id;
             const isLeader = userRole === 'leader';
-
             return isLeader || isDraggingOwnName;
         };
 
-        // Validate source drag permission
         if (!checkDragPermission(source.droppableId)) {
             alert("You don't have permission to move this member.");
             return;
         }
 
-        // Validate destination drag permission
         if (!checkDragPermission(destination.droppableId)) {
             alert("You don't have permission to add members to this team.");
             return;
@@ -467,12 +538,10 @@ function Member({num, isPending}) {
         const start = state.columns[source.droppableId];
         const finish = state.columns[destination.droppableId];
 
-        if (start === finish) {
-            return;
-        }
+        if (start === finish) return;
 
         try {
-            // Update local state first
+            // Update local state
             const startOrder = Array.from(start.order);
             startOrder.splice(source.index, 1);
             const newStart = {
@@ -500,33 +569,60 @@ function Member({num, isPending}) {
 
             // Moving from nameList to a team
             if (source.droppableId === 'nameList' && destination.droppableId !== 'nameList') {
-                await fetch(`http://localhost:3001/api/teams/${destination.droppableId}/members`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        studentId: draggableId,
-                        socketId: socket.id // Send socket ID to identify initiator
-                    }),
-                });
-                await fetch('http://localhost:3001/api/joinrequests', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        studentId: user.id,
-                        teamId: destination.droppableId
-                    }),
-                });
-                const memberElem = document.querySelector(`[data-rbd-draggable-id="${draggableId}"]`);
-                if (memberElem) {
-                    memberElem.firstChild.classList.add(styles.pendingRequest);
+                const teamInfo = state.columns[destination.droppableId];
+                const isLeader = teamInfo.memberRoles?.[user.id] === 'leader';
+
+                if (isLeader) {
+                    // Leader is dragging someone in - create invitation
+                    await fetch('http://localhost:3001/api/invites', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            studentId: draggableId,
+                            teamId: destination.droppableId,
+                            status: 'pending'
+                        }),
+                    });
+
+                    if (socket) {
+                        socket.emit('inviteUpdate', {
+                            type: 'newInvite',
+                            invite: {
+                                student_id: draggableId,
+                                team_id: destination.droppableId,
+                                status: 'pending'
+                            }
+                        });
+                    }
+
+                    const memberElem = document.querySelector(`[data-rbd-draggable-id="${draggableId}"]`);
+                    if (memberElem) {
+                        memberElem.firstChild.classList.add(styles.pendingInvite);
+                    }
+                } else {
+                    // Regular member dragging themselves - create join request
+                    await fetch('http://localhost:3001/api/joinrequests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            studentId: user.id,
+                            teamId: destination.droppableId
+                        }),
+                    });
+
+                    const memberElem = document.querySelector(`[data-rbd-draggable-id="${draggableId}"]`);
+                    if (memberElem) {
+                        memberElem.firstChild.classList.add(styles.pendingRequest);
+                    }
                 }
-            }  
-            // Moving from a team to nameList
+            } 
             else if (source.droppableId !== 'nameList' && destination.droppableId === 'nameList') {
+                const sourceTeamInfo = state.columns[source.droppableId];
+                const destTeamInfo = state.columns[destination.droppableId];
                 await fetch(`http://localhost:3001/api/teams/${source.droppableId}/members/${draggableId}`, {
                     method: 'DELETE',
                     headers: {
@@ -536,24 +632,76 @@ function Member({num, isPending}) {
                         socketId: socket.id
                     }),
                 });
+                // Can't move the leader
+                if (sourceTeamInfo.memberRoles?.[draggableId] === 'leader') {
+                    alert("Team leader cannot be moved to another team");
+                    setState(state);
+                    return;
+                }
             }
+
             else if (source.droppableId !== 'nameList' && destination.droppableId !== 'nameList') {
+                const sourceTeamInfo = state.columns[source.droppableId];
+                const destTeamInfo = state.columns[destination.droppableId];
+
+                // Check if user is leader of source team or moving themselves
+                const isSourceLeader = sourceTeamInfo.memberRoles?.[user.id] === 'leader';
+                const isMovingMember = draggableId === user.id;
+                const isDestLeader = destTeamInfo.memberRoles?.[user.id] === 'leader';
+
+                if (!isSourceLeader && !isMovingMember) {
+                    alert("Only team leaders can move members, or members can move themselves");
+                    setState(state);
+                    return;
+                }
+
+                // Can't move the leader
+                if (sourceTeamInfo.memberRoles?.[draggableId] === 'leader') {
+                    alert("Team leader cannot be moved to another team");
+                    setState(state);
+                    return;
+                }
+
+                // First remove from current team
                 await fetch(`http://localhost:3001/api/teams/${source.droppableId}/members/${draggableId}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        socketId: socket.id
-                    }),
                 });
+
+                // Then handle joining new team based on permissions
+                if (isDestLeader) {
+                    // Leader of destination team is moving someone - create invitation
+                    await fetch('http://localhost:3001/api/invites', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            studentId: draggableId,
+                            teamId: destination.droppableId,
+                            status: 'pending'
+                        }),
+                    });
+                } else {
+                    // Member is moving themselves - create join request
+                    await fetch('http://localhost:3001/api/joinrequests', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            studentId: draggableId,
+                            teamId: destination.droppableId
+                        }),
+                    });
+                }
             }
+            // Other movement cases remain the same...
         } catch (error) {
             console.error('Error updating team members:', error);
-            // Revert state on error
             setState(state);
         }
     };
+
     useClickEffect();
 
     const handleTeamCreated = (update) => {
@@ -593,7 +741,6 @@ function Member({num, isPending}) {
             return newState;
         });
     };
-
     const addTeam = async () => {
         try {
             const response = await fetch('http://localhost:3001/api/teams', {
@@ -688,6 +835,7 @@ function Member({num, isPending}) {
         teamMembers={teamMembers} 
         assignmentInfo={assignmentInfo}
         pendingRequests={pendingRequests}
+        pendingInvites={pendingInvites}
         allStudents={allStudents}
         socket={socket}
         />
