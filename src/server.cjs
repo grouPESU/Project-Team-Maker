@@ -13,8 +13,8 @@ const port = 3000;
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root', 
-  password: '2289', 
-  database: 'finalgroupes' 
+  password: '25102004', 
+  database: 'dbms_project' 
 });
 
 // Email transporter setup
@@ -57,7 +57,7 @@ const validateIdFormat = (id, table) => {
 
 const sendPasswordEmail = async (email, password, isTeacher = false) => {
   const mailOptions = {
-    from: 'your-email@gmail.com',    // Replace with your Gmail
+    from: 'nsashank2510@gmail.com',
     to: email,
     subject: 'Your Password Information',
     text: `Your ${isTeacher ? 'teacher' : 'student'} account password is: ${password}\n\nPlease keep this information secure.`,

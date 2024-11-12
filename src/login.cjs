@@ -10,8 +10,8 @@ const port = 3002;
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '2289',
-  database: 'finalgroupes'
+  password: '25102004',
+  database: 'dbms_project'
 });
 
 app.use(cors({

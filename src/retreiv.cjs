@@ -28,8 +28,8 @@ const io = new Server(server, {
 const dbConfig = {
     host: 'localhost',
     user: 'root',
-    password: '2289',
-    database: 'finalgroupes'
+    password: '25102004',
+    database: 'dbms_project'
 };
 
 async function isStudentInAnyTeam(connection, studentId, assignmentId) {

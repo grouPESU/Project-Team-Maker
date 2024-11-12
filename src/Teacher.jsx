@@ -106,6 +106,17 @@ function App() {
     }
   };
 
+  const handlePushTeamStatus = async (assignmentId) => {
+    try {
+      const response = await axios.post(`http://localhost:5000/pushTeamStatus/${assignmentId}`);
+      alert('Team status email sent successfully!');
+    } catch (error) {
+      console.error('Error sending team status:', error);
+      alert('Failed to send team status email. Please try again.');
+    }
+  };
+  
+
   const resetForm = () => {
     setTitle('');
     setDescription('');
@@ -203,6 +214,7 @@ function App() {
                   <button className={styles.editButton} onClick={() => handleEdit(assignment)}>Edit</button>
                   <button className={styles.deleteButton} onClick={() => handleDelete(assignment.assignment_id)}>Delete</button>
                   <button className={styles.viewButton} onClick={() => handleViewGroups(assignment)}>View Groups</button>
+                  <button className={styles.viewButton} onClick={() => handlePushTeamStatus(assignment.assignment_id)}>Push Team Status</button>
                 </div>
               </div>
             ))}
