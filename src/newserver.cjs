@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const app = express();
 const PORT = 3006;
-
+require('dotenv').config();
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['GET', 'POST'],
@@ -13,10 +13,10 @@ app.use(cors({
 app.use(express.json());
 
 const db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '25102004',
-    database: 'dbms_project',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -34,17 +34,17 @@ app.get('/api/test-db', async (req, res) => {
 app.get('/student/assignments', async (req, res) => {
     try {
         const query = `
-            SELECT 
-                a.assignment_id,
-                a.title,
-                a.description,
-                a.min_team_size,
-                a.max_team_size,
-                a.deadline,
-                a.teacher_id
-            FROM Assignment AS a 
-            JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
-            WHERE ac.class = ?
+        SELECT 
+        a.assignment_id,
+            a.title,
+            a.description,
+            a.min_team_size,
+            a.max_team_size,
+            a.deadline,
+            a.teacher_id
+        FROM Assignment AS a 
+        JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
+        WHERE ac.class = ?
             ORDER BY a.deadline ASC;`;
 
         const [assignments] = await db.execute(query, ['M']);  // section is harcoded for now, should be directed from login page
@@ -70,19 +70,19 @@ app.get('/student/assignments/:assignmentId', async (req, res) => {
         const { assignmentId } = req.params;
 
         const query = `
-            SELECT 
-                a.assignment_id,
-                a.title,
-                a.description,
-                a.min_team_size,
-                a.max_team_size,
-                a.deadline,
-                a.teacher_id,
-                ac.class
-            FROM Assignment AS a 
-            JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
-            JOIN Teacher AS t ON a.teacher_id = t.teacher_id
-            WHERE a.assignment_id = ? AND ac.class = ?`;
+        SELECT 
+        a.assignment_id,
+            a.title,
+            a.description,
+            a.min_team_size,
+            a.max_team_size,
+            a.deadline,
+            a.teacher_id,
+            ac.class
+        FROM Assignment AS a 
+        JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
+        JOIN Teacher AS t ON a.teacher_id = t.teacher_id
+        WHERE a.assignment_id = ? AND ac.class = ?`;
 
         const [assignment] = await db.execute(query, [assignmentId, 'M']); // 'M' is hardcoded for now
 
