@@ -8,50 +8,7 @@ import Profile from "./Profile"
 import Request from "./Request"
 import Invite from "./Invite"
 import loginStyles from "./login.module.css"
-import Typewriter from 'typewriter-effect';
-function TypewriterComponent() {
-    return (
-        <div className={loginStyles.typewriterContainer}>
-        <Typewriter
-        options={{
-            strings: ['Fast', 'Easy', 'Now'],
-                autoStart: true,
-                loop: true,
-                delay: 25,        // Controls typing speed
-            deleteSpeed: 20,  // Controls delete speed
-            cursor: '|',      // Custom cursor character
-        }}
-        />
-        </div>
-    );
-}
 
-
-function useClickEffect() {
-    useEffect(() => {
-        const clickEffect = (e) => {
-            const d = document.createElement("div");
-            d.className = styles.clickEffect; // Use CSS module class
-            d.style.top = `${e.clientY}px`;
-            d.style.left = `${e.clientX}px`;
-            document.body.appendChild(d);
-
-            const removeDiv = () => {
-                d.removeEventListener('animationend', removeDiv);
-                d.parentElement?.removeChild(d);
-            };
-
-            d.addEventListener('animationend', removeDiv);
-        };
-
-        document.addEventListener('click', clickEffect);
-
-        // Cleanup listener on component unmount
-        return () => {
-            document.removeEventListener('click', clickEffect);
-        };
-    }, []); // Empty dependency array means this runs once on mount
-}
 function Nav({state,assignmentInfo, addTeam}) {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
@@ -102,6 +59,21 @@ function Nav({state,assignmentInfo, addTeam}) {
 }
 
 function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests, pendingInvites}) {
+    const [memberCount, setMemberCount] = useState(0);
+    const { logout, user } = useAuth();
+    useEffect(() => {
+        const fetchMemberCount = async () => {
+            try {
+                const response = await fetch(`http://localhost:3001/api/teams/${teamId}/count`);
+                const data = await response.json();
+                setMemberCount(data.count);
+            } catch (error) {
+                console.error('Error fetching member count:', error);
+            }
+        };
+
+        fetchMemberCount();
+    }, [teamId, state.columns[teamId]?.order]);
     const handleDelete = async () => {
         try {
             const response = await fetch(`http://localhost:3001/api/teams/${teamId}`, {
@@ -133,7 +105,7 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
             <ul className={styles.team} ref={provided.innerRef} {...provided.droppableProps}>
         <div className={styles.teamIdOverlay}>
             <div className={styles.iD}>
-        ID: {teamId}
+        ID: {teamId} <span className={styles.memberCount}>({memberCount} members)</span>
             </div>
         </div>
             {state.columns[teamId]?.order.length > 0 ? (
@@ -156,8 +128,10 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
                         isPendingInvite={pendingInvites.some(inv => 
                                     inv.student_id === studentName && 
                                     inv.team_id === teamId && 
-                                    inv.status === 'pending'
+                            inv.status === 'pending'
+
                         )}
+                        isLeader={state.columns[teamId]?.memberRoles?.[studentName] === 'leader'}
                         />
                         </li>
                     )}
@@ -174,20 +148,17 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
     );
 }
 
-function View({state, setState, teamMembers, allStudents, assignmentInfo, pendingRequests, pendingInvites, socket}) {
+function View({state, setState, teamMembers, allStudents, pendingRequests, pendingInvites, socket}) {
     const [teams, setTeams] = useState([]);
-    const { user } = useAuth();
     
     const handleDeleteTeam = async (teamId) => {
         try {
-            // Get team members from both state.columns and teamMembers
             const teamMembersToMove = [
                 ...(state.columns[teamId]?.order || []),
                 ...(teamMembers[teamId]?.order || [])
             ];
             console.log("breh", teamMembersToMove)
 
-            // Remove duplicates
             const uniqueTeamMembers = [...new Set(teamMembersToMove)];
             
             const response = await fetch(`http://localhost:3001/api/teams/${teamId}`, {
@@ -198,18 +169,14 @@ function View({state, setState, teamMembers, allStudents, assignmentInfo, pendin
                 throw new Error('Failed to delete team');
             }
 
-            // Update teams state
             setTeams(prevTeams => prevTeams.filter(id => id !== teamId));
 
-            // Update main state
             setState(prevState => {
-                // Create new nameList order with unique values
                 const newNameListOrder = [...new Set([
                     ...prevState.columns.nameList.order,
                     ...uniqueTeamMembers
                 ])];
 
-                // Create new state object
                 const newState = {
                     ...prevState,
                     columns: {
@@ -221,13 +188,11 @@ function View({state, setState, teamMembers, allStudents, assignmentInfo, pendin
                     }
                 };
 
-                // Remove the team from columns
                 delete newState.columns[teamId];
 
                 return newState;
             });
 
-            // Emit socket event after successful deletion
             if (socket) {
                 socket.emit('teamUpdate', {
                     type: 'teamDeleted',
@@ -242,7 +207,6 @@ function View({state, setState, teamMembers, allStudents, assignmentInfo, pendin
         }
     };
 
-    // Use existing teams from backend
     useEffect(() => {
         const existingTeamIds = Object.keys(teamMembers);
         setTeams(existingTeamIds);
@@ -274,12 +238,12 @@ function View({state, setState, teamMembers, allStudents, assignmentInfo, pendin
 }
 
 
-function Member({num, isPending, isPendingInvite}) {
+function Member({num, isPending, isPendingInvite, isLeader}) {
     return (
         <div className={`${styles.member} 
             ${isPending ? styles.pendingRequest : ''} 
             ${isPendingInvite ? styles.pendingRequest : ''}`}>
-        {num}
+        {num} {isLeader ? '👑' : ""}
         </div>
     )
 }
@@ -640,69 +604,12 @@ export default function Main() {
                 }
             }
 
-            else if (source.droppableId !== 'nameList' && destination.droppableId !== 'nameList') {
-                const sourceTeamInfo = state.columns[source.droppableId];
-                const destTeamInfo = state.columns[destination.droppableId];
-
-                // Check if user is leader of source team or moving themselves
-                const isSourceLeader = sourceTeamInfo.memberRoles?.[user.id] === 'leader';
-                const isMovingMember = draggableId === user.id;
-                const isDestLeader = destTeamInfo.memberRoles?.[user.id] === 'leader';
-
-                if (!isSourceLeader && !isMovingMember) {
-                    alert("Only team leaders can move members, or members can move themselves");
-                    setState(state);
-                    return;
-                }
-
-                // Can't move the leader
-                if (sourceTeamInfo.memberRoles?.[draggableId] === 'leader') {
-                    alert("Team leader cannot be moved to another team");
-                    setState(state);
-                    return;
-                }
-
-                // First remove from current team
-                await fetch(`http://localhost:3001/api/teams/${source.droppableId}/members/${draggableId}`, {
-                    method: 'DELETE',
-                });
-
-                // Then handle joining new team based on permissions
-                if (isDestLeader) {
-                    // Leader of destination team is moving someone - create invitation
-                    await fetch('http://localhost:3001/api/invites', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            studentId: draggableId,
-                            teamId: destination.droppableId,
-                            status: 'pending'
-                        }),
-                    });
-                } else {
-                    // Member is moving themselves - create join request
-                    await fetch('http://localhost:3001/api/joinrequests', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            studentId: draggableId,
-                            teamId: destination.droppableId
-                        }),
-                    });
-                }
-            }
-            // Other movement cases remain the same...
         } catch (error) {
             console.error('Error updating team members:', error);
             setState(state);
         }
     };
 
-    useClickEffect();
 
     const handleTeamCreated = (update) => {
         const { teamId, team, creatorId } = update;

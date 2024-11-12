@@ -70,7 +70,7 @@ function App() {
       state: {
         assignmentId: assignment.assignment_id,
         assignmentTitle: assignment.title,
-        description: assignment.description
+        assignmentDescription: assignment.description
       }
     });
   };

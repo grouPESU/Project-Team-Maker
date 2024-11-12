@@ -2,9 +2,14 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    overflow: clip;
+    overflow: hidden;
     font-family: "Lucida Console", Monaco, monospace;
 }
+
+*::-webkit::scrollbar {
+    display: none;
+}
+
 
 body {
     background-color: var(--background);
@@ -38,6 +43,10 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     padding-top: 100px;
 }
 
+.leftSection::-webkit-scrollbar {
+    display: none;
+}
+
 .logo {
     position: relative;
     font-size: 6rem; /* Increased size for better effect */
@@ -50,6 +59,10 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     animation: animate 15s ease-in-out infinite;
     margin-bottom: 2rem;
     font-family: 'Raleway', sans-serif;
+}
+
+.logo::-webkit-scrollbar {
+    display: none;
 }
 
 @keyframes animate {
@@ -74,6 +87,13 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     color: white; /* Changed to white for better contrast on black background */
     margin: 20px;
     text-align: center;
+}
+
+.typewriterContainer::-webkit-scrollbar {
+    display: none;
+}
+.typewriterWrapper::-webkit-scrollbar {
+    display: none;
 }
 
 /* Right side styles */
@@ -159,15 +179,15 @@ input:focus, select:focus {
 }
 
 .submitButton {
-    width: 100%;
     padding: 0.75rem;
-    background-color: var(--color-bright-blue);
-    color: white;
+    background-color: var(--color-bright-green);
+    color: var(--color-black);
     border: none;
     border-radius: 4px;
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.2s;
+    margin: 10px;
 }
 
 .submitButton:hover {

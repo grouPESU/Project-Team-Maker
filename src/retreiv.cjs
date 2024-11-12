@@ -407,6 +407,7 @@ app.post('/api/joinrequests', async (req, res) => {
         }
         
         // Create new request
+        console.log(studentId,teamId,reqId)
         await connection.execute(
             'INSERT INTO JoinRequest (student_id, team_id, request_id, status) VALUES (?, ?, ?, "pending")',
             [studentId, teamId, reqId]
@@ -538,6 +539,28 @@ app.get('/api/invites', async (req, res) => {
     }
 });
 
+app.get('/api/teams/:teamId/count', async (req, res) => {
+    const { teamId } = req.params;
+    const connection = await mysql.createConnection(dbConfig);
+    try {
+        const [rows] = await connection.execute(`
+            SELECT COUNT(team_member_id) as count
+            FROM Team_member
+            WHERE team_id = ?
+            GROUP BY team_id
+        `, [teamId]);
+        
+        // If no results, return 0
+        const count = rows.length > 0 ? rows[0].count : 0;
+        
+        res.json({ count });
+    } catch (error) {
+        console.error('Error fetching team count:', error);
+        res.status(500).json({ error: 'Failed to fetch team count' });
+    } finally {
+        await connection.end();
+    }
+});
 app.get('/api/invites/:studentId', async (req, res) => {
     const { studentId } = req.params;
     const connection = await mysql.createConnection(dbConfig);

@@ -27,31 +27,6 @@ function TypewriterComponent() {
 }
 
 
-function useClickEffect() {
-    useEffect(() => {
-        const clickEffect = (e) => {
-            const d = document.createElement("div");
-            d.className = styles.clickEffect; // Use CSS module class
-            d.style.top = `${e.clientY}px`;
-            d.style.left = `${e.clientX}px`;
-            document.body.appendChild(d);
-
-            const removeDiv = () => {
-                d.removeEventListener('animationend', removeDiv);
-                d.parentElement?.removeChild(d);
-            };
-
-            d.addEventListener('animationend', removeDiv);
-        };
-
-        document.addEventListener('click', clickEffect);
-
-        // Cleanup listener on component unmount
-        return () => {
-            document.removeEventListener('click', clickEffect);
-        };
-    }, []); // Empty dependency array means this runs once on mount
-}
 function Nav({state,assignmentInfo, addTeam}) {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
@@ -65,7 +40,7 @@ function Nav({state,assignmentInfo, addTeam}) {
     );
     
     const students = state.columns.nameList.order;
-    console.log("am i a leader",isUserLeader)
+    console.log("am i a leader",assignmentInfo)
     return (
         <div className={styles.nav}>
         <div className={styles.titlecard}>
@@ -75,7 +50,7 @@ function Nav({state,assignmentInfo, addTeam}) {
         )}
         </div>
         <div className={styles.navControls}>
-        {isUserLeader ? <Request /> : <Invite />}
+         <Request /> <Invite />
         <button className={styles.viewButton} onClick={addTeam}>Add Team</button>
         </div>
         <div className={styles.bruh}>
@@ -158,6 +133,7 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
                                     inv.team_id === teamId && 
                                     inv.status === 'pending'
                         )}
+                        isLeader={state.columns[teamId]?.memberRoles?.[studentName] === 'leader'}
                         />
                         </li>
                     )}
@@ -274,12 +250,12 @@ function View({state, setState, teamMembers, allStudents, assignmentInfo, pendin
 }
 
 
-function Member({num, isPending, isPendingInvite}) {
+function Member({num, isPending, isPendingInvite, isLeader}) {
     return (
         <div className={`${styles.member} 
             ${isPending ? styles.pendingRequest : ''} 
             ${isPendingInvite ? styles.pendingRequest : ''}`}>
-        {num}
+        {num} {isLeader ? '👑' : ""}
         </div>
     )
 }
@@ -515,25 +491,6 @@ export default function Main() {
             return;
         }
 
-        // Check drag permissions
-        const checkDragPermission = (teamId) => {
-            if (teamId === 'nameList') return true;
-            const teamInfo = state.columns[teamId];
-            const userRole = teamInfo.memberRoles?.[user.id] || 'member';
-            const isDraggingOwnName = draggableId === user.id;
-            const isLeader = userRole === 'leader';
-            return isLeader || isDraggingOwnName;
-        };
-
-        if (!checkDragPermission(source.droppableId)) {
-            alert("You don't have permission to move this member.");
-            return;
-        }
-
-        if (!checkDragPermission(destination.droppableId)) {
-            alert("You don't have permission to add members to this team.");
-            return;
-        }
 
         const start = state.columns[source.droppableId];
         const finish = state.columns[destination.droppableId];
@@ -609,7 +566,7 @@ export default function Main() {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            studentId: user.id,
+                            studentId:draggableId,
                             teamId: destination.droppableId
                         }),
                     });
@@ -649,11 +606,6 @@ export default function Main() {
                 const isMovingMember = draggableId === user.id;
                 const isDestLeader = destTeamInfo.memberRoles?.[user.id] === 'leader';
 
-                if (!isSourceLeader && !isMovingMember) {
-                    alert("Only team leaders can move members, or members can move themselves");
-                    setState(state);
-                    return;
-                }
 
                 // Can't move the leader
                 if (sourceTeamInfo.memberRoles?.[draggableId] === 'leader') {
@@ -702,7 +654,6 @@ export default function Main() {
         }
     };
 
-    useClickEffect();
 
     const handleTeamCreated = (update) => {
         const { teamId, team, creatorId } = update;

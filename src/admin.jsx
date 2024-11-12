@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import adminStyles from "./admin.module.css"
+import Profile from "./Profile"
 
 const App = () => {
   const [file, setFile] = useState(null);
@@ -94,6 +95,8 @@ const App = () => {
   };
 
   return (
+    <div className={adminStyles.main}>
+      <Profile className={adminStyles.logout}/>
     <div className={adminStyles.c1}>
       <h1 className={adminStyles.c2}>Admin Dashboard</h1>
       
@@ -212,6 +215,7 @@ const App = () => {
         </div>
       )}
     </div>
+      </div>
   );
 };
 
