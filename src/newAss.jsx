@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import assnStyles from './newass.module.css';
 import Profile from "./Profile"
+import { useAuth } from './AuthContext';
 
 const AssignmentDetails = () => {
     const { assignmentId } = useParams();
@@ -9,12 +10,17 @@ const AssignmentDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const { user } = useAuth();
+    // user info from Auth Context  
 
     useEffect(() => {
         const fetchAssignmentDetails = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`http://localhost:3006/student/assignments/${assignmentId}`);
+                const response = await fetch(
+                    `http://localhost:3006/student/assignments/${assignmentId}?student_id=${user.id}`
+                );
+                // sending userid to the endpoint
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -27,11 +33,11 @@ const AssignmentDetails = () => {
                 setError(err.message || 'Failed to fetch assignment details');
             } finally {
                 setLoading(false);
-            } 
+            }
         };
 
         fetchAssignmentDetails();
-    }, [assignmentId]);
+    }, [assignmentId, user.id]);
 
     if (loading) {
         return (
@@ -120,14 +126,18 @@ const StudentAssignments = () => {
     const [loading, setLoading] = useState(true);
     const [expandedId, setExpandedId] = useState(null);
     const navigate = useNavigate();
+    const { user } = useAuth();  
+    // user info from Auth Context
 
     useEffect(() => {
         const fetchAssignments = async () => {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await fetch('http://localhost:3006/student/assignments');
+                // Included ID in the request
+                const response = await fetch(`http://localhost:3006/student/assignments?student_id=${user.id}`);
                 const data = await response.json();
+                // sending the userid to the endpoint
 
                 if (!response.ok) {
                     throw new Error(data.message || 'Failed to fetch assignments');
@@ -146,7 +156,7 @@ const StudentAssignments = () => {
         };
 
         fetchAssignments();
-    }, []);
+    }, [user.id]);
 
     const toggleExpand = (assignmentId, event) => {
         if (event.target.closest(`.${assnStyles.viewDetailsBtn}`)) {
