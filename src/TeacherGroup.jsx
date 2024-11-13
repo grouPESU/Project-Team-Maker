@@ -49,10 +49,10 @@ function Nav({state,assignmentInfo, addTeam}) {
             <p className={styles.description}>{assignmentInfo.assignmentDescription}</p>
         )}
         </div>
-        <div className={styles.navControls}>
+        {/* <div className={styles.navControls}>
          <Request /> <Invite />
         <button className={styles.viewButton} onClick={addTeam}>Add Team</button>
-        </div>
+        </div> */}
         <div className={styles.bruh}>
         <h1> Ungrouped Students </h1>
         <Droppable droppableId="nameList">

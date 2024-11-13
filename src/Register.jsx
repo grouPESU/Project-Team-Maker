@@ -132,7 +132,6 @@ export default function RegistrationForm() {
         required
         >
         <option value="">Select your role</option>
-        <option value="admin">Admin</option>
         <option value="teacher">Teacher</option>
         <option value="student">Student</option>
         </select>

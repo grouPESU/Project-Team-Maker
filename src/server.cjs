@@ -77,18 +77,53 @@ const sendPasswordEmail = async (email, password, isTeacher = false) => {
 };
 
 // Routes
-app.get('/getPassword/:table/:id', (req, res) => {
+app.get('/getPassword/:table/:id', async (req, res) => {  
     const { table, id } = req.params;
-
+    console.log(`Received request for password retrieval: Table = ${table}, ID = ${id}`);
     if (table !== 'Teacher' && table !== 'Student') {
+        console.error(`Invalid table name: ${table}`);
         return res.status(400).json({ message: 'Invalid table name' });
     }
-
     if (!validateIdFormat(id, table)) {
+        console.error(`Invalid ID format: ${id} for table ${table}`);
         return res.status(400).json({ 
             message: `Invalid ID format. ${table} IDs must start with PES${table === 'Teacher' ? '4' : '2'}`
         });
     }
+
+    const procedureCall = 'CALL GetPassword(?, ?, @user_password);';  // Just call the procedure to set @user_password
+
+    console.log('Executing stored procedure with query:', procedureCall);
+
+    // Execute the stored procedure to set @user_password
+    connection.query(procedureCall, [table, id], async (err, results) => {  // Mark this callback as async
+        if (err) {
+            console.error('Database error during stored procedure execution:', err);
+            return res.status(500).json({ message: 'Database error', error: err.message });
+        }
+
+        console.log('Stored procedure executed successfully. Results:', results);
+
+        // Now, fetch the password stored in @user_password
+        const getPasswordQuery = 'SELECT @user_password AS password;';
+
+        connection.query(getPasswordQuery, async (err, passwordResults) => {  // Ensure this callback is async as well
+            if (err) {
+                console.error('Error fetching password:', err);
+                return res.status(500).json({ message: 'Error fetching password', error: err.message });
+            }
+
+            console.log('Password retrieved:', passwordResults);
+
+            if (passwordResults.length === 0 || !passwordResults[0].password) {
+                console.error(`No password found for ${table} with ID ${id}`);
+                return res.status(404).json({ message: `${table} with ID ${id} not found or password missing` });
+            }
+
+            const userPassword = passwordResults[0].password;
+            console.log(`Password retrieved for ${table} with ID ${id}:`, userPassword);
+        });
+    });
 
     const query = `
     SELECT t.*, e.email 
