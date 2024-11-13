@@ -65,13 +65,38 @@ io.on('connection', (socket) => {
         console.log('Client disconnected');
     });
 });
+// async function fetchDataFromDB(assignmentId) {
+//     const connection = await mysql.createConnection(dbConfig);
+//     try {
+//         const [rows] = await connection.execute(
+//             `SELECT student_id, firstname, class 
+//             FROM Student 
+//             WHERE student_id NOT IN (
+//                 SELECT team_member_id 
+//                 FROM Team_member
+//                 WHERE team_id IN (
+//                     SELECT team_id
+//                     FROM Team
+//                     WHERE assignment_id = ?
+//                 )
+//             )`,
+//             [assignmentId]
+//         );
+//         return rows;
+//     } finally {
+//         await connection.end();
+//     }
+// }
+
 async function fetchDataFromDB(assignmentId) {
     const connection = await mysql.createConnection(dbConfig);
     try {
         const [rows] = await connection.execute(
-            `SELECT student_id, firstname, class 
-            FROM Student 
-            WHERE student_id NOT IN (
+            `SELECT DISTINCT s.student_id, s.firstname, s.class 
+            FROM Student s
+            JOIN AssignmentClass ac ON s.class = ac.class
+            WHERE ac.assignment_id = ?
+            AND s.student_id NOT IN (
                 SELECT team_member_id 
                 FROM Team_member
                 WHERE team_id IN (
@@ -80,13 +105,14 @@ async function fetchDataFromDB(assignmentId) {
                     WHERE assignment_id = ?
                 )
             )`,
-            [assignmentId]
+            [assignmentId, assignmentId]
         );
         return rows;
     } finally {
         await connection.end();
     }
 }
+
 async function fetchAllDataFromDB() {
     const connection = await mysql.createConnection(dbConfig);
     try {
