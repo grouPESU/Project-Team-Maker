@@ -9,10 +9,10 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: 'localhost',
+    user: 'root', 
+    password: '25102004', 
+    database: 'dbms_project' 
 });
 
 db.connect((err) => {
@@ -24,8 +24,8 @@ db.connect((err) => {
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_ADDR,
-        pass: process.env.EMAIL_PASS
+        user: 'groupes.edu@gmail.com',    
+        pass: 'qehb enbe ajqc yjwi'  
     }
 });
 

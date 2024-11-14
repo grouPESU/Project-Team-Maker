@@ -11,14 +11,14 @@ const port = 3000;
 
 // Database connection
 const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    //host: 'localhost',
-    //user: 'root', 
-    //password: '25102004', 
-    //database: 'dbms_project' 
+    // host: process.env.DB_HOST,
+    // user: process.env.DB_USER,
+    // password: process.env.DB_PASSWORD,
+    // database: process.env.DB_NAME,
+    host: 'localhost',
+    user: 'root', 
+    password: '25102004', 
+    database: 'dbms_project' 
 });
 
 // Email transporter setup
@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'groupes.edu@gmail.com',    
-        pass: 'uymi xswo zlya qxyr'        
+        pass: 'qehb enbe ajqc yjwi'        
     }
 });
 

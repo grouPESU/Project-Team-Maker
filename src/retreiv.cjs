@@ -26,10 +26,10 @@ const io = new Server(server, {
 });
 
 const dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: 'localhost',
+    user: 'root', 
+    password: '25102004', 
+    database: 'dbms_project' 
 };
 
 async function isStudentInAnyTeam(connection, studentId, assignmentId) {

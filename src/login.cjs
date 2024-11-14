@@ -8,10 +8,10 @@ const app = express();
 const port = 3002;
 console.log(process.env.DB_NAME)
 const connection = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: 'localhost',
+    user: 'root', 
+    password: '25102004', 
+    database: 'dbms_project' 
 });
 
 app.use(cors({
