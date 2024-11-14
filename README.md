@@ -1,9 +1,13 @@
+```
+                           ____  ___________
+   ____ __________  __  __/ __ \/ ____/ ___/
+  / __ `/ ___/ __ \/ / / / /_/ / __/  \__ \ 
+ / /_/ / /  / /_/ / /_/ / ____/ /___ ___/ / 
+ \__, /_/   \____/\__,_/_/   /_____//____/  
+/____/
 
-## TODO
+A no nonsense project group maker.
+```
 
-- [x] Figure out Drag n Drop.
-- [ ] Student view
-- [x] Teacher view
-- [x] Admin view
-- [x] View all currently running projects
-- [x] Login
+
+

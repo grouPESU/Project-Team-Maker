@@ -5,7 +5,8 @@ const csv = require('csv-parser');
 const fs = require('fs');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
-require('dotenv').config();
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const port = 3000;
 

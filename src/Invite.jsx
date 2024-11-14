@@ -12,7 +12,7 @@ const Invite = () => {
     useEffect(() => {
         const newSocket = io('http://localhost:3001');
         setSocket(newSocket);
-        
+
         return () => newSocket.disconnect();
     }, []);
 
@@ -109,62 +109,62 @@ const Invite = () => {
 
     return (
         <>
-            <button 
-                className={styles.editButton} 
-                onClick={() => setShowInvites(!showInvites)}
-            >
-                Invites {invites.length > 0 && `(${invites.length})`}
-            </button>
+        <button 
+        className={styles.editButton} 
+        onClick={() => setShowInvites(!showInvites)}
+        >
+        Invites {invites.length > 0 && `(${invites.length})`}
+        </button>
 
-            {showInvites && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalHeader}>
-                            <h2>Team Invites</h2>
-                            <button 
-                                className={styles.closeButton}
-                                onClick={() => setShowInvites(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className={styles.requestsList}>
-                            {invites.length > 0 ? (
-                                <ul>
-                                    {invites.map((invite) => (
-                                        <li key={invite.invitation_id} className={styles.requestItem}>
-                                            <div className={styles.requestInfo}>
-                                                <span className={styles.studentName}>
-                                                    {invite.student_name}
-                                                </span>
-                                                <span className={styles.teamId}>
-                                                    Team: {invite.team_id}
-                                                </span>
-                                            </div>
-                                            <div className={styles.requestActions}>
-                                                <button
-                                                    className={`${styles.actionButton} ${styles.acceptButton}`}
-                                                    onClick={() => handleInviteAction(invite.invitation_id, 'accepted')}
-                                                >
-                                                    Accept
-                                                </button>
-                                                <button
-                                                    className={`${styles.actionButton} ${styles.rejectButton}`}
-                                                    onClick={() => handleInviteAction(invite.invitation_id, 'rejected')}
-                                                >
-                                                    Reject
-                                                </button>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className={styles.noRequests}>No pending invites</p>
-                            )}
-                        </div>
+        {showInvites && (
+            <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+            <h2>Team Invites</h2>
+            <button 
+            className={styles.closeButton}
+            onClick={() => setShowInvites(false)}
+            >
+            ×
+            </button>
+            </div>
+            <div className={styles.requestsList}>
+            {invites.length > 0 ? (
+                <ul>
+                {invites.map((invite) => (
+                    <li key={invite.invitation_id} className={styles.requestItem}>
+                    <div className={styles.requestInfo}>
+                    <span className={styles.studentName}>
+                    {invite.student_name}
+                    </span>
+                    <span className={styles.teamId}>
+                    Team: {invite.team_id}
+                    </span>
                     </div>
-                </div>
+                    <div className={styles.requestActions}>
+                    <button
+                    className={`${styles.actionButton} ${styles.acceptButton}`}
+                    onClick={() => handleInviteAction(invite.invitation_id, 'accepted')}
+                    >
+                    Accept
+                    </button>
+                    <button
+                    className={`${styles.actionButton} ${styles.rejectButton}`}
+                    onClick={() => handleInviteAction(invite.invitation_id, 'rejected')}
+                    >
+                    Reject
+                    </button>
+                    </div>
+                    </li>
+                ))}
+                </ul>
+            ) : (
+                <p className={styles.noRequests}>No pending invites</p>
             )}
+            </div>
+            </div>
+            </div>
+        )}
         </>
     );
 };

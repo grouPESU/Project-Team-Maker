@@ -3,7 +3,8 @@ const mysql = require('mysql2/promise');
 const cors = require('cors');
 const app = express();
 const PORT = 3006;
-require('dotenv').config();
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 app.use(cors({
     origin: 'http://localhost:5173',
     methods: ['GET', 'POST'],
@@ -34,7 +35,7 @@ app.get('/api/test-db', async (req, res) => {
 app.get('/student/assignments', async (req, res) => {
     try {
         const studentId = req.query.student_id;
-        
+
         if (!studentId) {
             return res.status(400).json({ 
                 status: 'error', 
@@ -59,17 +60,17 @@ app.get('/student/assignments', async (req, res) => {
 
         // then getting assignments for that class
         const query = `
-            SELECT 
-                a.assignment_id,
-                a.title,
-                a.description,
-                a.min_team_size,
-                a.max_team_size,
-                a.deadline,
-                a.teacher_id
-            FROM Assignment AS a 
-            JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
-            WHERE ac.class = ?
+        SELECT 
+        a.assignment_id,
+            a.title,
+            a.description,
+            a.min_team_size,
+            a.max_team_size,
+            a.deadline,
+            a.teacher_id
+        FROM Assignment AS a 
+        JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
+        WHERE ac.class = ?
             ORDER BY a.deadline ASC;`;
 
         const [assignments] = await db.execute(query, [studentClass]);
@@ -118,19 +119,19 @@ app.get('/student/assignments/:assignmentId', async (req, res) => {
         const studentClass = studentRows[0].class;
 
         const query = `
-            SELECT 
-                a.assignment_id,
-                a.title,
-                a.description,
-                a.min_team_size,
-                a.max_team_size,
-                a.deadline,
-                a.teacher_id,
-                ac.class
-            FROM Assignment AS a 
-            JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
-            JOIN Teacher AS t ON a.teacher_id = t.teacher_id
-            WHERE a.assignment_id = ? AND ac.class = ?`;
+        SELECT 
+        a.assignment_id,
+            a.title,
+            a.description,
+            a.min_team_size,
+            a.max_team_size,
+            a.deadline,
+            a.teacher_id,
+            ac.class
+        FROM Assignment AS a 
+        JOIN AssignmentClass AS ac ON a.assignment_id = ac.assignment_id 
+        JOIN Teacher AS t ON a.teacher_id = t.teacher_id
+        WHERE a.assignment_id = ? AND ac.class = ?`;
 
         const [assignment] = await db.execute(query, [assignmentId, studentClass]);
 

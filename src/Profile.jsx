@@ -5,26 +5,26 @@ import { User, LogOut, ChevronDown } from 'lucide-react';
 import styles from "./teacher.module.css"
 
 const ProfileBox = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  return (
-    <div className="relative">
-      <div className={styles.profile}>
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+    console.log(user)
+    return (
+        <div className="relative">
+        <div className={styles.profile}>
         <User/> {user.id}
-      <br/>
+        <br/>
         <button onClick={handleLogout} className={styles.deleteButton}>
-            LogOut
+        LogOut
         </button>
-      </div>
-    </div>
-  );
+        </div>
+        </div>
+    );
 };
 
 export default ProfileBox;

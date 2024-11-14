@@ -20,7 +20,7 @@ function Nav({state,assignmentInfo, addTeam}) {
     const isUserLeader = Object.values(state.columns).some(column => 
         column.memberRoles && column.memberRoles[user.id] === 'leader'
     );
-    
+
     const students = state.columns.nameList.order;
     console.log("am i a leader",isUserLeader)
     return (
@@ -103,11 +103,11 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
         <Droppable droppableId={teamId}>
         {(provided) => (
             <ul className={styles.team} ref={provided.innerRef} {...provided.droppableProps}>
-        <div className={styles.teamIdOverlay}>
+            <div className={styles.teamIdOverlay}>
             <div className={styles.iD}>
-        ID: {teamId} <span className={styles.memberCount}>({memberCount} members)</span>
+            ID: {teamId} <span className={styles.memberCount}>({memberCount} members)</span>
             </div>
-        </div>
+            </div>
             {state.columns[teamId]?.order.length > 0 ? (
                 // Use Set to ensure unique values in the order array
                 state.columns[teamId].order.map((studentName, index) => (
@@ -126,8 +126,8 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
                             req.status === 'pending'
                         )}
                         isPendingInvite={pendingInvites.some(inv => 
-                                    inv.student_id === studentName && 
-                                    inv.team_id === teamId && 
+                            inv.student_id === studentName && 
+                            inv.team_id === teamId && 
                             inv.status === 'pending'
 
                         )}
@@ -150,7 +150,7 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
 
 function View({state, setState, teamMembers, allStudents, pendingRequests, pendingInvites, socket}) {
     const [teams, setTeams] = useState([]);
-    
+
     const handleDeleteTeam = async (teamId) => {
         try {
             const teamMembersToMove = [
@@ -160,7 +160,7 @@ function View({state, setState, teamMembers, allStudents, pendingRequests, pendi
             console.log("breh", teamMembersToMove)
 
             const uniqueTeamMembers = [...new Set(teamMembersToMove)];
-            
+
             const response = await fetch(`http://localhost:3001/api/teams/${teamId}`, {
                 method: 'DELETE',
             });
@@ -214,25 +214,25 @@ function View({state, setState, teamMembers, allStudents, pendingRequests, pendi
 
     return (
         <div className={styles.groupview}>
-            <div className={styles.groupnav}>
-                <div className={styles.coolText}>
-                    <h1 className={loginStyles.logo}>grouPES</h1>
-                </div>
-                <Profile />
-            </div>
-            <div className={styles.grouplist}>
-                {teams.map((teamId) => (
-                    <Team 
-                        key={teamId} 
-                        teamId={teamId} 
-                        state={state}
-                        onDeleteTeam={handleDeleteTeam}
-                        pendingRequests={pendingRequests}
-                        pendingInvites={pendingInvites}
-                        allStudents={allStudents}
-                    />
-                ))}
-            </div>
+        <div className={styles.groupnav}>
+        <div className={styles.coolText}>
+        <h1 className={loginStyles.logo}>grouPES</h1>
+        </div>
+        <Profile />
+        </div>
+        <div className={styles.grouplist}>
+        {teams.map((teamId) => (
+            <Team 
+            key={teamId} 
+            teamId={teamId} 
+            state={state}
+            onDeleteTeam={handleDeleteTeam}
+            pendingRequests={pendingRequests}
+            pendingInvites={pendingInvites}
+            allStudents={allStudents}
+            />
+        ))}
+        </div>
         </div>
     );
 }

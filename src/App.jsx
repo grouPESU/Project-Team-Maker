@@ -11,65 +11,65 @@ import Assn from './newAss';
 import TeacherGroup from './TeacherGroup'
 
 function App() {
-  return (
-    <AuthProvider>
-      <BrowserRouter>
+    return (
+        <AuthProvider>
+        <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/register" element={<RegistrationForm />} />
-          
-          {/* Protected Routes */}
-          <Route
-            path="/main"
-            element={
-              <PrivateRoute>
-                <Main />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/groups"
-            element={
-              <PrivateRoute>
-                <TeacherGroup />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <PrivateRoute allowedRoles={['admin']}>
-                <Admin />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/teacher"
-            element={
-              <PrivateRoute allowedRoles={['teacher']}>
-                <Assignment />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/assignment"
-            element={
-              <PrivateRoute allowedRoles={['student']}>
-                <Assn />
-              </PrivateRoute>
-            }
-          />
-          
-          {/* Redirect root to login */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          
-          {/* Catch all unmatched routes */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Public Routes */}
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/register" element={<RegistrationForm />} />
+
+        {/* Protected Routes */}
+        <Route
+        path="/main"
+        element={
+            <PrivateRoute>
+            <Main />
+            </PrivateRoute>
+        }
+        />
+        <Route
+        path="/groups"
+        element={
+            <PrivateRoute>
+            <TeacherGroup />
+            </PrivateRoute>
+        }
+        />
+        <Route
+        path="/admin"
+        element={
+            <PrivateRoute allowedRoles={['admin']}>
+            <Admin />
+            </PrivateRoute>
+        }
+        />
+        <Route
+        path="/teacher"
+        element={
+            <PrivateRoute allowedRoles={['teacher']}>
+            <Assignment />
+            </PrivateRoute>
+        }
+        />
+        <Route
+        path="/assignment"
+        element={
+            <PrivateRoute allowedRoles={['student']}>
+            <Assn />
+            </PrivateRoute>
+        }
+        />
+
+        {/* Redirect root to login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
+        {/* Catch all unmatched routes */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  );
+        </BrowserRouter>
+        </AuthProvider>
+    );
 }
 
 export default App;

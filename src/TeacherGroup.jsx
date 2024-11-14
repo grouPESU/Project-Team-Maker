@@ -38,7 +38,7 @@ function Nav({state,assignmentInfo, addTeam}) {
     const isUserLeader = Object.values(state.columns).some(column => 
         column.memberRoles && column.memberRoles[user.id] === 'leader'
     );
-    
+
     const students = state.columns.nameList.order;
     console.log("am i a leader",assignmentInfo)
     return (
@@ -50,9 +50,9 @@ function Nav({state,assignmentInfo, addTeam}) {
         )}
         </div>
         {/* <div className={styles.navControls}>
-         <Request /> <Invite />
-        <button className={styles.viewButton} onClick={addTeam}>Add Team</button>
-        </div> */}
+            <Request /> <Invite />
+            <button className={styles.viewButton} onClick={addTeam}>Add Team</button>
+            </div> */}
         <div className={styles.bruh}>
         <h1> Ungrouped Students </h1>
         <Droppable droppableId="nameList">
@@ -106,11 +106,11 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
         <Droppable droppableId={teamId}>
         {(provided) => (
             <ul className={styles.team} ref={provided.innerRef} {...provided.droppableProps}>
-        <div className={styles.teamIdOverlay}>
+            <div className={styles.teamIdOverlay}>
             <div className={styles.iD}>
-        ID: {teamId}
+            ID: {teamId}
             </div>
-        </div>
+            </div>
             {state.columns[teamId]?.order.length > 0 ? (
                 // Use Set to ensure unique values in the order array
                 state.columns[teamId].order.map((studentName, index) => (
@@ -129,9 +129,9 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
                             req.status === 'pending'
                         )}
                         isPendingInvite={pendingInvites.some(inv => 
-                                    inv.student_id === studentName && 
-                                    inv.team_id === teamId && 
-                                    inv.status === 'pending'
+                            inv.student_id === studentName && 
+                            inv.team_id === teamId && 
+                            inv.status === 'pending'
                         )}
                         isLeader={state.columns[teamId]?.memberRoles?.[studentName] === 'leader'}
                         />
@@ -153,7 +153,7 @@ function Team({index, teamId, state, allStudents, onDeleteTeam, pendingRequests,
 function View({state, setState, teamMembers, allStudents, assignmentInfo, pendingRequests, pendingInvites, socket}) {
     const [teams, setTeams] = useState([]);
     const { user } = useAuth();
-    
+
     const handleDeleteTeam = async (teamId) => {
         try {
             // Get team members from both state.columns and teamMembers
@@ -165,7 +165,7 @@ function View({state, setState, teamMembers, allStudents, assignmentInfo, pendin
 
             // Remove duplicates
             const uniqueTeamMembers = [...new Set(teamMembersToMove)];
-            
+
             const response = await fetch(`http://localhost:3001/api/teams/${teamId}`, {
                 method: 'DELETE',
             });
@@ -226,25 +226,25 @@ function View({state, setState, teamMembers, allStudents, assignmentInfo, pendin
 
     return (
         <div className={styles.groupview}>
-            <div className={styles.groupnav}>
-                <div className={styles.coolText}>
-                    <h1 className={loginStyles.logo}>grouPES(Teachers)</h1>
-                </div>
-                <Profile />
-            </div>
-            <div className={styles.grouplist}>
-                {teams.map((teamId) => (
-                    <Team 
-                        key={teamId} 
-                        teamId={teamId} 
-                        state={state}
-                        onDeleteTeam={handleDeleteTeam}
-                        pendingRequests={pendingRequests}
-                        pendingInvites={pendingInvites}
-                        allStudents={allStudents}
-                    />
-                ))}
-            </div>
+        <div className={styles.groupnav}>
+        <div className={styles.coolText}>
+        <h1 className={loginStyles.logo}>grouPES(Teachers)</h1>
+        </div>
+        <Profile />
+        </div>
+        <div className={styles.grouplist}>
+        {teams.map((teamId) => (
+            <Team 
+            key={teamId} 
+            teamId={teamId} 
+            state={state}
+            onDeleteTeam={handleDeleteTeam}
+            pendingRequests={pendingRequests}
+            pendingInvites={pendingInvites}
+            allStudents={allStudents}
+            />
+        ))}
+        </div>
         </div>
     );
 }

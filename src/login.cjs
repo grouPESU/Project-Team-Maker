@@ -3,7 +3,8 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const mysql = require('mysql2');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const app = express();
 const port = 3002;
 console.log(process.env.DB_NAME)

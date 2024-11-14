@@ -12,7 +12,7 @@ const Request = () => {
     useEffect(() => {
         const newSocket = io('http://localhost:3001');
         setSocket(newSocket);
-        
+
         return () => newSocket.disconnect();
     }, []);
 
@@ -109,62 +109,62 @@ const Request = () => {
 
     return (
         <>
-            <button 
-                className={styles.editButton} 
-                onClick={() => setShowRequests(!showRequests)}
-            >
-                Requests {requests.length > 0 && `(${requests.length})`}
-            </button>
+        <button 
+        className={styles.editButton} 
+        onClick={() => setShowRequests(!showRequests)}
+        >
+        Requests {requests.length > 0 && `(${requests.length})`}
+        </button>
 
-            {showRequests && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modalContent}>
-                        <div className={styles.modalHeader}>
-                            <h2>Join Requests</h2>
-                            <button 
-                                className={styles.closeButton}
-                                onClick={() => setShowRequests(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className={styles.requestsList}>
-                            {requests.length > 0 ? (
-                                <ul>
-                                    {requests.map((request) => (
-                                        <li key={request.request_id} className={styles.requestItem}>
-                                            <div className={styles.requestInfo}>
-                                                <span className={styles.studentName}>
-                                                    {request.student_name}
-                                                </span>
-                                                <span className={styles.teamId}>
-                                                    Team: {request.team_id}
-                                                </span>
-                                            </div>
-                                            <div className={styles.requestActions}>
-                                                <button
-                                                    className={`${styles.actionButton} ${styles.acceptButton}`}
-                                                    onClick={() => handleRequestAction(request.request_id, 'accepted')}
-                                                >
-                                                    Accept
-                                                </button>
-                                                <button
-                                                    className={`${styles.actionButton} ${styles.rejectButton}`}
-                                                    onClick={() => handleRequestAction(request.request_id, 'rejected')}
-                                                >
-                                                    Reject
-                                                </button>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className={styles.noRequests}>No pending requests</p>
-                            )}
-                        </div>
+        {showRequests && (
+            <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+            <h2>Join Requests</h2>
+            <button 
+            className={styles.closeButton}
+            onClick={() => setShowRequests(false)}
+            >
+            ×
+            </button>
+            </div>
+            <div className={styles.requestsList}>
+            {requests.length > 0 ? (
+                <ul>
+                {requests.map((request) => (
+                    <li key={request.request_id} className={styles.requestItem}>
+                    <div className={styles.requestInfo}>
+                    <span className={styles.studentName}>
+                    {request.student_name}
+                    </span>
+                    <span className={styles.teamId}>
+                    Team: {request.team_id}
+                    </span>
                     </div>
-                </div>
+                    <div className={styles.requestActions}>
+                    <button
+                    className={`${styles.actionButton} ${styles.acceptButton}`}
+                    onClick={() => handleRequestAction(request.request_id, 'accepted')}
+                    >
+                    Accept
+                    </button>
+                    <button
+                    className={`${styles.actionButton} ${styles.rejectButton}`}
+                    onClick={() => handleRequestAction(request.request_id, 'rejected')}
+                    >
+                    Reject
+                    </button>
+                    </div>
+                    </li>
+                ))}
+                </ul>
+            ) : (
+                <p className={styles.noRequests}>No pending requests</p>
             )}
+            </div>
+            </div>
+            </div>
+        )}
         </>
     );
 };

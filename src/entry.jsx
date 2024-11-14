@@ -8,10 +8,10 @@ import { StrictMode } from 'react'
 import App from "./App"
 
 createRoot(document.getElementById('root')).render(
-        <App />
-        //<RegistrationForm />
-        //<Main />
-        //<Admin />
-        //<LoginForm />
-        //<Assignment />
+    <App />
+    //<RegistrationForm />
+    //<Main />
+    //<Admin />
+    //<LoginForm />
+    //<Assignment />
 )
